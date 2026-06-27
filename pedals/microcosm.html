@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // Hologram Microcosm — How It Works</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+    <style>
+        .seg-btn { border:1px solid var(--color-border); color:var(--color-muted); }
+        .seg-btn.active { border-color:var(--color-accent); color:var(--color-accent); background:rgba(255,74,0,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Pedals</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="aperture" class="text-accent"></i> Hologram Microcosm
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Granular · Glitch · Looper — how it works</p>
+            </div>
+            <span class="tag">Granular</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            The Microcosm chops your incoming signal into tiny slices called <strong class="text-accent">grains</strong>
+            and replays, layers, pitches and scatters them in time to build evolving ambient, glitchy and rhythmic
+            textures. It bundles <strong class="text-white">11 effect styles</strong> across four families, a synth-style
+            resonant filter, a built-in reverb (Space), a hold/sampler, and a 60-second looper — all syncable to tempo.
+        </p>
+    </section>
+
+    <!-- ===== Grains visualizer ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Grains</span>
+            <h2 class="text-lg font-semibold tracking-tight">What granular actually means</h2>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="grains" class="w-full" style="height:240px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                Each dot is a <span class="text-accent">grain</span> — a tiny slice of your sound. Higher
+                <strong>Activity</strong> spawns more, denser grains; they scatter in time and pitch to form a cloud.
+            </p>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div>
+                <label class="knob-label block mb-1">Activity (grain density) — <span id="actVal" class="knob-val"></span></label>
+                <input id="activity" type="range" min="0" max="100" step="1" value="45">
+                <p class="text-textMuted text-xs mt-2">How busy the engine is — from sparse, occasional grains to a thick, continuous swarm.</p>
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Shape (grain size / spread) — <span id="shapeVal" class="knob-val"></span></label>
+                <input id="shape" type="range" min="0" max="100" step="1" value="50">
+                <p class="text-textMuted text-xs mt-2">Tweaks grain length and how far they're flung in pitch/time — small &amp; tight vs. long &amp; smeared.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Effect categories ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Engine</span>
+            <h2 class="text-lg font-semibold tracking-tight">The effect families</h2>
+        </div>
+        <div class="panel p-5 mb-4">
+            <label class="knob-label block mb-2">Category</label>
+            <div class="flex flex-wrap gap-2" id="catBtns">
+                <button data-cat="microloop" class="seg-btn rounded px-3 py-1 text-xs active">Micro Loop</button>
+                <button data-cat="glitch" class="seg-btn rounded px-3 py-1 text-xs">Glitch</button>
+                <button data-cat="granules" class="seg-btn rounded px-3 py-1 text-xs">Granules</button>
+                <button data-cat="blocks" class="seg-btn rounded px-3 py-1 text-xs">Blocks</button>
+            </div>
+            <p id="catDesc" class="text-textMuted text-xs mt-3"></p>
+        </div>
+        <div class="panel p-5">
+            <label class="knob-label block mb-2">Subdivision (tempo sync)</label>
+            <div class="flex flex-wrap gap-2" id="subBtns">
+                <button data-sub="1" class="seg-btn rounded px-3 py-1 text-xs">1/4</button>
+                <button data-sub="0.75" class="seg-btn rounded px-3 py-1 text-xs">1/4d</button>
+                <button data-sub="0.5" class="seg-btn rounded px-3 py-1 text-xs active">1/8</button>
+                <button data-sub="0.333" class="seg-btn rounded px-3 py-1 text-xs">1/8t</button>
+                <button data-sub="0.25" class="seg-btn rounded px-3 py-1 text-xs">1/16</button>
+            </div>
+            <p class="text-textMuted text-xs mt-3">
+                The subdivision locks the grain/loop timing to a note value of the clock (Tap Tempo or MIDI),
+                so the texture stays in time with the track.
+            </p>
+        </div>
+    </section>
+
+    <!-- ===== Controls ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Controls</span>
+            <h2 class="text-lg font-semibold tracking-tight">Shaping the texture</h2>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2 mb-4">
+            <div>
+                <label class="knob-label block mb-1">Reflections (feedback) — <span id="refVal" class="knob-val"></span></label>
+                <input id="reflections" type="range" min="0" max="100" step="1" value="40">
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Space (reverb) — <span id="spaceVal" class="knob-val"></span></label>
+                <input id="space" type="range" min="0" max="100" step="1" value="30">
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Filter (resonant LPF) — <span id="filtVal" class="knob-val"></span></label>
+                <input id="filter" type="range" min="0" max="100" step="1" value="80">
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Mix — <span id="mixVal" class="knob-val"></span></label>
+                <input id="mix" type="range" min="0" max="100" step="1" value="55">
+            </div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Reflections</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Feeds the processed sound back into itself so grains/loops regenerate and build. Higher = longer, denser, more self-sustaining clouds.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Space</h3>
+                <p class="text-textMuted text-xs leading-relaxed">A built-in reverb that smears everything into a wash. A little adds depth; a lot turns the output into pure ambient atmosphere.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Filter</h3>
+                <p class="text-textMuted text-xs leading-relaxed">A synth-style resonant low-pass for dramatic tone sculpting — sweep it for filter-swept, evolving movement across the texture.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Mix</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Dry vs. wet balance. Blend in subtle texture under your playing, or go fully wet and let the Microcosm become the instrument.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Looper / Hold ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Capture</span>
+            <h2 class="text-lg font-semibold tracking-tight">Looper &amp; Hold</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="repeat" class="text-accent" style="width:15px;height:15px"></i> 60-second looper</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Capture phrases with one tap, with infinite overdubbing, reverse playback, fade in/out and undo/erase.
+                    It can sit <em>before</em> the effects (process the loop) or <em>after</em> (loop the wet output) — or run independently.
+                </p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="pause" class="text-accent" style="width:15px;height:15px"></i> Hold / sampler</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Freezes the effect in its current state and sustains it indefinitely. Play melodies on top of the
+                    frozen drone, then release to let it go. Pair with Tap Tempo / MIDI sync and the 16 presets for live recall.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Listen ===== -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it (light recreation)</h2>
+        </div>
+        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
+            <button id="play" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                <i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud
+            </button>
+            <p class="text-textMuted text-xs">
+                A simple in-browser granular engine sprays short grains from a held tone, then runs them through
+                feedback, the resonant filter and reverb using your settings. It <em>lightly</em> mimics the pedal.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marauder Peninsula</a>
+        <span>Microcosm explainer</span>
+    </footer>
+
+</div>
+<script>feather.replace();</script>
+</body>
+</html>

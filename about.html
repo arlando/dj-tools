@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // About</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+    <div class="w-full max-w-3xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <a href="index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> Home</a>
+            <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                        <i data-feather="user" class="text-accent"></i> About
+                    </h1>
+                    <p class="text-textMuted text-sm mt-1">xxar's Marauder Peninsula</p>
+                </div>
+                <span class="tag">DJ</span>
+            </div>
+        </header>
+
+        <!-- Bio -->
+        <section class="panel p-6 mb-8">
+            <h2 class="text-lg font-semibold tracking-tight mb-3">Hey, I'm xxar</h2>
+            <p class="text-sm leading-relaxed text-gray-300 mb-4">
+                A DJ <strong class="text-white">born and raised in Florida</strong>, now based in and
+                <strong class="text-white">working out of New York</strong>. This site is my corner of
+                the web for interactive tools and gear explainers &mdash; breaking down how the
+                equipment actually works, one knob at a time.
+            </p>
+            <p class="text-sm leading-relaxed text-textMuted">
+                Florida roots, New York hustle. If it makes noise, I want to understand exactly how.
+            </p>
+        </section>
+
+        <!-- Links -->
+        <section class="mb-10">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="tag">Listen</span>
+                <h2 class="text-lg font-semibold tracking-tight">Find me</h2>
+            </div>
+            <a href="https://soundcloud.com/xxar1983" target="_blank" rel="noopener noreferrer"
+               class="panel p-5 group flex items-center justify-between hover:border-accent transition-colors">
+                <div class="flex items-center gap-3">
+                    <i data-feather="cloud" class="text-accent"></i>
+                    <div>
+                        <h3 class="font-semibold group-hover:text-accent transition-colors">SoundCloud</h3>
+                        <p class="text-textMuted text-xs font-mono">soundcloud.com/xxar1983</p>
+                    </div>
+                </div>
+                <i data-feather="external-link" class="text-textMuted group-hover:text-accent transition-colors" style="width:18px;height:18px"></i>
+            </a>
+        </section>
+
+        <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+            <a href="index.html" class="back-link">xxar's Marauder Peninsula</a>
+            <span>About</span>
+        </footer>
+    </div>
+    <script>feather.replace();</script>
+</body>
+</html>

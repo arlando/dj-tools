@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // Strymon Volante — How It Works</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+    <style>
+        .head-card.off { opacity: 0.4; }
+        .seg-btn { border:1px solid var(--color-border); color:var(--color-muted); }
+        .seg-btn.active { border-color:var(--color-accent); color:var(--color-accent); background:rgba(255,74,0,0.1); }
+        input[type=range].mini-range::-webkit-slider-thumb { height:16px; width:16px; margin-top:-7px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Pedals</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="disc" class="text-accent"></i> Strymon Volante
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Magnetic Multi-Head Echo Machine — how it works</p>
+            </div>
+            <span class="tag">Echo</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            The Volante recreates classic <strong class="text-white">magnetic echo machines</strong> (think Binson Echorec).
+            A single <strong class="text-accent">record head</strong> lays your signal onto a virtual loop of tape or drum,
+            and <strong class="text-white">four playback heads</strong> read it back at different points — producing multiple
+            echoes at once. Turn on more heads and you build rhythmic patterns; feed them back and the echoes regenerate.
+        </p>
+    </section>
+
+    <!-- ===== Visualizer + Heads ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">The Heads</span>
+            <h2 class="text-lg font-semibold tracking-tight">One record head, four playback heads</h2>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="drum" class="w-full" style="height:260px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                The dot orbits the loop = the playhead. As it passes the <span class="text-white">REC</span> head your note is written;
+                each lit <span class="text-accent">playback head</span> reads it back later, creating an echo.
+            </p>
+        </div>
+        <div id="heads" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+        <p class="text-textMuted text-xs mt-3">
+            Each head has its own <strong>Echo</strong> on/off, <strong>Level</strong>, <strong>Pan</strong>, and
+            <strong>Repeats</strong> (whether that head feeds back into the loop to regenerate).
+        </p>
+    </section>
+
+    <!-- ===== Delay / Time / Speed / Spacing ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Delay</span>
+            <h2 class="text-lg font-semibold tracking-tight">How delay works with the heads</h2>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div>
+                <label class="knob-label block mb-1">Time (Head 4 distance) — <span id="timeVal" class="knob-val"></span></label>
+                <input id="time" type="range" min="100" max="1500" step="10" value="600">
+                <p class="text-textMuted text-xs mt-2">
+                    <strong>Time</strong> sets the gap between the record head and the <em>furthest</em> playback head (Head&nbsp;4).
+                    The other heads sit at fractions of this distance.
+                </p>
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Speed</label>
+                <div class="flex gap-2 mb-4" id="speedBtns">
+                    <button data-speed="0.5" class="seg-btn rounded px-3 py-1 text-xs">&frac12;&times;</button>
+                    <button data-speed="1" class="seg-btn rounded px-3 py-1 text-xs active">1&times;</button>
+                    <button data-speed="2" class="seg-btn rounded px-3 py-1 text-xs">2&times;</button>
+                </div>
+                <label class="knob-label block mb-1">Spacing — <span id="spaceVal" class="knob-val">Even</span></label>
+                <input id="spacing" type="range" min="0" max="100" step="1" value="0">
+                <p class="text-textMuted text-xs mt-2">
+                    <strong>Speed</strong> scales the whole loop (faster tape = shorter echoes).
+                    <strong>Spacing</strong> nudges the heads from evenly-spaced toward the irregular gaps of vintage machines.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Ratios ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Ratios</span>
+            <h2 class="text-lg font-semibold tracking-tight">How the ratios affect output</h2>
+        </div>
+        <div class="panel p-5">
+            <p class="text-textMuted text-sm mb-4">
+                With even spacing the heads land at <span class="font-mono text-white">1/4, 2/4, 3/4, 4/4</span> of the Time.
+                That fixed relationship is what turns four echoes into a <em>rhythm</em>. Here's where each enabled head fires:
+            </p>
+            <div id="ratioRows" class="space-y-2 mb-4"></div>
+            <div class="value-box p-3 text-xs font-mono text-textMuted" id="ratioSummary"></div>
+        </div>
+    </section>
+
+    <!-- ===== Tone / Mechanism ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Tone</span>
+            <h2 class="text-lg font-semibold tracking-tight">Mechanism &amp; character</h2>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div>
+                <label class="knob-label block mb-1">Mechanism</label>
+                <div class="flex gap-2 mb-4" id="typeBtns">
+                    <button data-type="studio" class="seg-btn rounded px-3 py-1 text-xs">Studio</button>
+                    <button data-type="tape" class="seg-btn rounded px-3 py-1 text-xs active">Tape</button>
+                    <button data-type="drum" class="seg-btn rounded px-3 py-1 text-xs">Drum</button>
+                </div>
+                <p id="typeDesc" class="text-textMuted text-xs"></p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Record Level (drive into the tape) — <span id="recVal" class="knob-val"></span></label>
+                    <input id="record" type="range" min="0" max="100" step="1" value="45">
+                    <p class="text-textMuted text-xs mt-1">
+                        Sets how hard you hit the virtual record head. Push it past ~60% and the media
+                        starts to <strong class="text-accent">saturate and soft-clip</strong> — that warm, gritty overdrive
+                        is the heart of the Volante's sound. Higher Type warmth = grit comes sooner.
+                    </p>
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Repeats (global feedback) — <span id="fbVal" class="knob-val"></span></label>
+                    <input id="feedback" type="range" min="0" max="95" step="1" value="40">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Mechanics (wow &amp; flutter) — <span id="wowVal" class="knob-val"></span></label>
+                    <input id="wow" type="range" min="0" max="100" step="1" value="20">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Wear (HF rolloff) — <span id="wearVal" class="knob-val"></span></label>
+                    <input id="wear" type="range" min="0" max="100" step="1" value="30">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Mix — <span id="mixVal" class="knob-val"></span></label>
+                    <input id="mix" type="range" min="0" max="100" step="1" value="50">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Getting the most out of it ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Pro Tips</span>
+            <h2 class="text-lg font-semibold tracking-tight">Getting the most out of it</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="zap" class="text-accent" style="width:15px;height:15px"></i> Drive the Record Level</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    The single most "vibe" control. Low settings stay clean and hi-fi; push it past ~60% and the
+                    virtual media starts to <strong class="text-accent">saturate and soft-clip</strong>, adding warmth,
+                    compression and grit. Because repeats are re-recorded through this stage, each echo gets
+                    <em>progressively</em> more saturated — a built-in overdrive that grows as the delay decays.
+                    Pair a hot Record Level with the <strong>Drum</strong> mechanism for the thickest, most overdriven tone.
+                </p>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="repeat" class="text-accent" style="width:15px;height:15px"></i> Repeats &amp; self-oscillation</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Repeats sets how much of each "feedback" head returns to the record head. Around the top of its
+                    range the repeats build instead of decaying — the machine begins to
+                    <strong class="text-accent">self-oscillate</strong> into runaway, swelling drones. Combined with a
+                    saturated Record Level this turns into a playable, screaming texture. Roll Repeats back to tame it.
+                </p>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="grid" class="text-accent" style="width:15px;height:15px"></i> Heads = rhythm vs. ambience</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Two or three evenly-spaced heads with moderate feedback give clear, musical
+                    <strong>rhythmic</strong> subdivisions. Turn on <em>all four</em>, raise Repeats, and add Spacing and
+                    the taps smear together into a dense, <strong>reverb-like ambient wash</strong>. The heads are your
+                    main "delay personality" control — use Level and Pan per head to shape the groove.
+                </p>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="wind" class="text-accent" style="width:15px;height:15px"></i> Mechanics + Wear = vintage realism</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    <strong>Mechanics</strong> adds wow, flutter, splices and crinkle — pitch wobble and instability that
+                    sells the "old machine" feel. <strong>Wear</strong> rolls off highs as the repeats age, so echoes get
+                    darker and more distant the longer they trail. A touch of each = authentic; cranked = broken-in-the-best-way.
+                </p>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="clock" class="text-accent" style="width:15px;height:15px"></i> Time, Speed &amp; Tap</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Use <strong>Tap Tempo</strong> (the footswitch on the hardware) to lock Time to the song. Switching
+                    <strong>Speed</strong> (½× / 1× / 2×) mid-phrase bends the pitch of the trails like a real tape motor —
+                    great for dives and risers. Remember Time sets Head&nbsp;4; the other heads always follow as fractions of it.
+                </p>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 flex items-center gap-2"><i data-feather="layers" class="text-accent" style="width:15px;height:15px"></i> SoS looper, reverb &amp; Favorite</h3>
+                <p class="text-textMuted text-xs leading-relaxed">
+                    Beyond delay, the Volante has a <strong>Sound-on-Sound</strong> looper (with reverse, pause, splice and
+                    infinite hold) and a built-in <strong>spring reverb</strong> you can blend in for extra space. Stash a
+                    go-to setting on the <strong>Favorite</strong> switch so you can jump to it instantly mid-set.
+                    Stereo outs + per-head Pan make it a wide, immersive ambient machine.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ===== Audio ===== -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it (light recreation)</h2>
+        </div>
+        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
+            <button id="pluck" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2"
+                    style="background:var(--color-accent);color:#111">
+                <i data-feather="play" style="width:16px;height:16px"></i> Pluck a note
+            </button>
+            <label class="flex items-center gap-2 text-xs text-textMuted cursor-pointer">
+                <input id="loop" type="checkbox"> Auto-repeat every 2s
+            </label>
+            <p class="text-textMuted text-xs">
+                Audio is synthesized in your browser via the Web Audio API — it <em>lightly</em> mimics the pedal,
+                not a perfect model. Adjust any control above and pluck again.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marauder Peninsula</a>
+        <span>Volante explainer</span>
+    </footer>
+
+</div>
+<script>
+feather.replace();
+
+// ============================================================
+//  Volante interactive model — lightly mimics the real pedal
+// ============================================================
+
+// Per-head state. Ratio = fraction of Time where the head reads back.
+// Even spacing => heads at 1/4, 2/4, 3/4, 4/4 of Time (like the Echorec).
+const heads = [
+    { n: 1, ratio: 0.25, on: false, level: 0.7, pan: -0.6, repeat: false },
+    { n: 2, ratio: 0.50, on: true,  level: 0.8, pan:  0.3, repeat: true  },
+    { n: 3, ratio: 0.75, on: false, level: 0.7, pan: -0.3, repeat: false },
+    { n: 4, ratio: 1.00, on: true,  level: 0.9, pan:  0.6, repeat: true  },
+];
+
+const state = {
+    time: 600, speed: 1, spacing: 0, type: 'tape',
+    record: 45, feedback: 40, wow: 20, wear: 30, mix: 50,
+};
+
+const HEAD_COLOR = '#ff4a00';
+
+// ---- Effective head times (ms) given Time, Speed and Spacing ----
+function headTimesMs() {
+    const baseTotal = state.time / state.speed; // head 4 actual delay
+    const sp = state.spacing / 100;
+    return heads.map(h => {
+        const skew = [ -0.06, 0.05, -0.04, 0 ][h.n - 1] * sp;
+        const r = Math.min(1, Math.max(0.05, h.ratio + skew));
+        return { ...h, ms: baseTotal * r, effRatio: r };
+    });
+}
+
+// ---- Build the per-head control cards ----
+const headsEl = document.getElementById('heads');
+function buildHeads() {
+    headsEl.innerHTML = '';
+    heads.forEach(h => {
+        const card = document.createElement('div');
+        card.className = 'panel p-4 head-card' + (h.on ? '' : ' off');
+        card.dataset.head = h.n;
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <span class="font-semibold text-sm">Head ${h.n}</span>
+                <button class="echo-btn seg-btn rounded px-2 py-0.5 text-[0.6rem] ${h.on ? 'active' : ''}">ECHO</button>
+            </div>
+            <div class="text-[0.6rem] text-textMuted font-mono mb-3">@ <span class="hms">--</span> ms</div>
+            <label class="knob-label block mb-1">Level</label>
+            <input class="lvl mini-range mb-3" type="range" min="0" max="100" value="${Math.round(h.level*100)}">
+            <label class="knob-label block mb-1">Pan</label>
+            <input class="pan mini-range mb-3" type="range" min="-100" max="100" value="${Math.round(h.pan*100)}">
+            <label class="flex items-center gap-2 text-[0.65rem] text-textMuted cursor-pointer mt-1">
+                <input class="rep" type="checkbox" ${h.repeat ? 'checked' : ''}> Repeats (feeds back)
+            </label>`;
+        card.querySelector('.echo-btn').onclick = () => { h.on = !h.on; refresh(); };
+        card.querySelector('.lvl').oninput = e => { h.level = e.target.value/100; refresh(); };
+        card.querySelector('.pan').oninput = e => { h.pan = e.target.value/100; refresh(); };
+        card.querySelector('.rep').onchange = e => { h.repeat = e.target.checked; refresh(); };
+        headsEl.appendChild(card);
+    });
+}
+</script>
+<script>
+// ---- Canvas: rotating loop with record + playback heads ----
+const cv = document.getElementById('drum');
+const ctx = cv.getContext('2d');
+let dpr = window.devicePixelRatio || 1;
+function sizeCanvas() {
+    dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr;
+    cv.height = 260 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeCanvas);
+
+let flashes = [];
+function drawLoop(ts) {
+    const w = cv.clientWidth, h = 260;
+    const cx = w/2, cy = h/2;
+    const R = Math.min(w, h)/2 - 40;
+    ctx.clearRect(0,0,w,h);
+
+    const lapMs = (state.time / state.speed);
+    const phase = (ts % lapMs) / lapMs;
+
+    ctx.lineWidth = 10; ctx.strokeStyle = '#1c1c1c';
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#2a2a2a';
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+
+    const angOf = frac => (-Math.PI/2) + frac * Math.PI*2;
+    const ptOf = (frac, rr) => [cx + Math.cos(angOf(frac))*rr, cy + Math.sin(angOf(frac))*rr];
+
+    drawHead(ptOf(0, R), 'REC', '#ffffff', false);
+
+    const ht = headTimesMs();
+    ht.forEach(d => {
+        const frac = (d.ms / lapMs) % 1;
+        drawHead(ptOf(frac, R), 'H'+d.n, HEAD_COLOR, !d.on);
+    });
+
+    const [px, py] = ptOf(phase, R);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+
+    ht.forEach(d => {
+        if (!d.on) return;
+        const frac = (d.ms / lapMs) % 1;
+        const dist = Math.abs(((phase - frac + 1) % 1));
+        if (dist < 0.012) {
+            if (!d._lit) { flashes.push({ frac, t: ts }); d._lit = true; }
+        } else { d._lit = false; }
+    });
+    flashes = flashes.filter(f => ts - f.t < 500);
+    flashes.forEach(f => {
+        const age = (ts - f.t)/500;
+        const [fx, fy] = ptOf(f.frac, R);
+        ctx.strokeStyle = `rgba(255,74,0,${1-age})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(fx, fy, 8 + age*22, 0, Math.PI*2); ctx.stroke();
+    });
+
+    ctx.fillStyle = '#888'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText(state.type.toUpperCase()+' · '+Math.round(lapMs)+'ms loop', cx, cy + 4);
+
+    requestAnimationFrame(drawLoop);
+}
+function drawHead([x,y], label, color, dim) {
+    ctx.save();
+    ctx.globalAlpha = dim ? 0.25 : 1;
+    ctx.fillStyle = color;
+    ctx.fillRect(x-3, y-9, 6, 18);
+    ctx.fillStyle = dim ? '#555' : color;
+    ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText(label, x, y - 14);
+    ctx.restore();
+}
+</script>
+<script>
+// ---- Type descriptions ----
+const TYPE_DESC = {
+    studio: 'Reel-to-reel studio echo: cleanest, most hi-fi. Brightest repeats, least saturation — the repeats stay clear and full-range.',
+    tape:   'Multi-head tape echo: smooth tape saturation with subtle crinkle/wobble. The classic warm, slightly soft repeat.',
+    drum:   'Magnetic drum echo (Binson-style): warmest and most saturated, tube-rich. Repeats darken and thicken as they regenerate.',
+};
+
+// ---- Sync all UI + numbers to state ----
+function refresh() {
+    document.getElementById('timeVal').textContent = state.time + ' ms';
+    document.getElementById('spaceVal').textContent = state.spacing === 0 ? 'Even' : state.spacing + '%';
+    const recEl = document.getElementById('recVal');
+    recEl.textContent = state.record + '%' + (state.record > 60 ? ' · saturating' : '');
+    recEl.style.color = state.record > 60 ? 'var(--color-accent)' : '';
+    document.getElementById('fbVal').textContent = state.feedback + '%';
+    document.getElementById('wowVal').textContent = state.wow + '%';
+    document.getElementById('wearVal').textContent = state.wear + '%';
+    document.getElementById('mixVal').textContent = state.mix + '%';
+    document.getElementById('typeDesc').textContent = TYPE_DESC[state.type];
+
+    const ht = headTimesMs();
+    headsEl.querySelectorAll('.head-card').forEach(card => {
+        const n = +card.dataset.head;
+        const d = ht.find(x => x.n === n);
+        card.querySelector('.hms').textContent = Math.round(d.ms);
+        card.classList.toggle('off', !d.on);
+        card.querySelector('.echo-btn').classList.toggle('active', d.on);
+    });
+
+    const rows = document.getElementById('ratioRows');
+    rows.innerHTML = '';
+    const onHeads = ht.filter(d => d.on);
+    ht.forEach(d => {
+        const pct = Math.round(d.effRatio * 100);
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-3 text-xs';
+        row.style.opacity = d.on ? '1' : '0.35';
+        row.innerHTML = `
+            <span class="font-mono w-12 ${d.on?'text-accent':'text-textMuted'}">H${d.n}</span>
+            <div class="flex-1 h-2 rounded bg-dark border border-border overflow-hidden">
+                <div style="width:${pct}%;height:100%;background:${d.on?'var(--color-accent)':'#444'}"></div>
+            </div>
+            <span class="font-mono w-20 text-right text-textMuted">${Math.round(d.ms)} ms</span>
+            <span class="font-mono w-12 text-right text-textMuted">${(d.effRatio).toFixed(2)}</span>`;
+        rows.appendChild(row);
+    });
+
+    const summary = document.getElementById('ratioSummary');
+    if (onHeads.length === 0) {
+        summary.textContent = 'No heads enabled — turn on an ECHO above to hear repeats.';
+    } else {
+        const first = onHeads[0];
+        const gaps = onHeads.map(d => Math.round(d.ms)).join(' · ');
+        summary.textContent =
+            `${onHeads.length} head(s) active → echoes at ${gaps} ms. ` +
+            `Shortest repeat ${Math.round(first.ms)} ms` +
+            (state.spacing>0 ? ' · spacing made the gaps uneven.' : ' · evenly spaced (clean subdivisions).');
+    }
+}
+
+// ---- Wire global controls ----
+function bindRange(id, key) {
+    document.getElementById(id).addEventListener('input', e => { state[key] = +e.target.value; refresh(); });
+}
+bindRange('time', 'time');
+bindRange('spacing', 'spacing');
+bindRange('record', 'record');
+bindRange('feedback', 'feedback');
+bindRange('wow', 'wow');
+bindRange('wear', 'wear');
+bindRange('mix', 'mix');
+
+function segGroup(containerId, key, attr, cast) {
+    document.querySelectorAll('#'+containerId+' button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('#'+containerId+' button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            state[key] = cast(b.dataset[attr]);
+            refresh();
+        });
+    });
+}
+segGroup('speedBtns', 'speed', 'speed', v => parseFloat(v));
+segGroup('typeBtns', 'type', 'type', v => v);
+</script>
+<script>
+// ============================================================
+//  Web Audio — light recreation of the multi-head echo
+// ============================================================
+let actx = null;
+function audio() {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    return actx;
+}
+
+const TYPE_TONE = { studio: 9000, tape: 5500, drum: 3800 };
+
+// Base drive per mechanism — warmer machines clip sooner.
+const TYPE_DRIVE = { studio: 1.5, tape: 4, drum: 7 };
+
+// Record Level scales the drive: low = clean, high = heavy saturation.
+function satCurve(type, record) {
+    const rec = (record == null ? state.record : record) / 100;
+    // record level pushes the drive up steeply once you go past ~0.6
+    const amt = TYPE_DRIVE[type] * (0.5 + rec * 3.5);
+    const n = 1024, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+        const x = (i / (n-1)) * 2 - 1;
+        c[i] = Math.tanh(x * amt) / Math.tanh(amt);
+    }
+    return c;
+}
+
+function pluck() {
+    const ac = audio();
+    const now = ac.currentTime;
+
+    // dry pluck: detuned triangles with a fast decay
+    const dry = ac.createGain();
+    dry.gain.setValueAtTime(0, now);
+    dry.gain.linearRampToValueAtTime(0.5, now + 0.005);
+    dry.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    [220, 330].forEach((f, i) => {
+        const o = ac.createOscillator();
+        o.type = 'triangle'; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.value = i ? 0.4 : 0.8;
+        o.connect(g).connect(dry);
+        o.start(now); o.stop(now + 0.5);
+    });
+
+    const master = ac.createGain();
+    master.gain.value = 0.9;
+    master.connect(ac.destination);
+
+    const mix = state.mix / 100;
+    const dryGain = ac.createGain(); dryGain.gain.value = 1 - mix * 0.6;
+    dry.connect(dryGain).connect(master);
+
+    const ht = headTimesMs();
+    const fb = state.feedback / 100;
+
+    // Record Level: drive the signal hitting the record head, then make-up gain.
+    const rec = state.record / 100;
+    const recDrive = ac.createWaveShaper();
+    recDrive.curve = satCurve(state.type, state.record);
+    const recMakeup = ac.createGain();
+    recMakeup.gain.value = 0.7 + rec * 0.5;   // hotter record = more level + grit
+    dry.connect(recDrive).connect(recMakeup);
+    // `recMakeup` is the saturated source that feeds every playback head + feedback.
+
+    const wetSum = ac.createGain(); wetSum.gain.value = mix;
+    wetSum.connect(master);
+
+    // shared feedback loop for "repeat" heads -> regeneration
+    const repeatHeads = ht.filter(d => d.on && d.repeat);
+    const fbDelay = ac.createDelay(5.0);
+    const longest = (repeatHeads[repeatHeads.length-1] || ht[ht.length-1]);
+    fbDelay.delayTime.value = Math.min(4.9, longest.ms/1000);
+    const fbGain = ac.createGain();
+    fbGain.gain.value = repeatHeads.length ? Math.min(0.9, fb) : 0;
+    const fbTone = ac.createBiquadFilter();
+    fbTone.type = 'lowpass';
+    fbTone.frequency.value = TYPE_TONE[state.type] * (1 - state.wear/140);
+    fbDelay.connect(fbTone).connect(fbGain).connect(fbDelay);
+    fbGain.connect(wetSum);
+
+    ht.forEach(d => {
+        if (!d.on) return;
+        const t = d.ms / 1000;
+
+        const delay = ac.createDelay(5.0);
+        delay.delayTime.value = Math.min(4.9, t);
+
+        // wow & flutter modulates the delay time
+        if (state.wow > 0) {
+            const lfo = ac.createOscillator();
+            lfo.frequency.value = 0.6 + Math.random()*0.8;
+            const lfoGain = ac.createGain();
+            lfoGain.gain.value = (state.wow/100) * 0.004;
+            lfo.connect(lfoGain).connect(delay.delayTime);
+            lfo.start(now); lfo.stop(now + 6);
+        }
+
+        const tone = ac.createBiquadFilter();
+        tone.type = 'lowpass';
+        tone.frequency.value = TYPE_TONE[state.type] * (1 - state.wear/200);
+
+        const lvl = ac.createGain(); lvl.gain.value = d.level * 0.9;
+        const panner = ac.createStereoPanner();
+        panner.pan.value = Math.max(-1, Math.min(1, d.pan));
+
+        // saturation already happened at the record head (recMakeup),
+        // so each playback head just reads the recorded signal back.
+        recMakeup.connect(delay);
+        delay.connect(tone).connect(lvl).connect(panner).connect(wetSum);
+
+        if (d.repeat) lvl.connect(fbDelay);
+    });
+}
+
+let loopTimer = null;
+document.getElementById('pluck').addEventListener('click', pluck);
+document.getElementById('loop').addEventListener('change', e => {
+    clearInterval(loopTimer);
+    if (e.target.checked) { pluck(); loopTimer = setInterval(pluck, 2000); }
+});
+
+// ---- Init ----
+buildHeads();
+sizeCanvas();
+refresh();
+requestAnimationFrame(drawLoop);
+</script>
+</body>
+</html>

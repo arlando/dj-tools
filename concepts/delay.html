@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // Delay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Concepts</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="clock" class="text-accent"></i> Delay
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Echoes — repeating the signal over time</p>
+            </div>
+            <span class="tag">Time</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            A delay <strong class="text-white">records your signal and plays it back a moment later</strong>.
+            Feed some of that repeat back into the input and it echoes again and again, each pass quieter than
+            the last. Control the <strong class="text-accent">time</strong> between repeats, how many there are
+            (feedback), and how much echo you hear (mix) and you have everything from slapback to ambient washes.
+        </p>
+    </section>
+
+    <!-- Visualizer -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Visualize</span>
+            <h2 class="text-lg font-semibold tracking-tight">Echoes over time</h2>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="echoes" class="w-full" style="height:200px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                The first bar is your dry hit. Each <span class="text-accent">repeat</span> arrives one delay time later,
+                quieter by the feedback amount, until it fades out.
+            </p>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-3">
+            <div>
+                <label class="knob-label block mb-1">Delay Time — <span id="timeVal" class="knob-val"></span></label>
+                <input id="time" type="range" min="50" max="1000" step="10" value="375">
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Feedback — <span id="fbVal" class="knob-val"></span></label>
+                <input id="feedback" type="range" min="0" max="95" step="1" value="45">
+            </div>
+            <div>
+                <label class="knob-label block mb-1">Mix — <span id="mixVal" class="knob-val"></span></label>
+                <input id="mix" type="range" min="0" max="100" step="1" value="40">
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls + types -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Concepts</span>
+            <h2 class="text-lg font-semibold tracking-tight">The essentials</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Delay Time</h3>
+                <p class="text-textMuted text-xs leading-relaxed">The gap between repeats. Sync it to tempo for musical echoes — short (~80ms) gives slapback, longer gives rhythmic trails.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Feedback</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How much of the repeat is fed back in to echo again. More feedback = more repeats. Near 100% it self-oscillates into a runaway drone.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Mix / Wet-Dry</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Balance of dry signal vs. echoes. Subtle blends add depth; heavy mixes push the echoes to the front for dub-style effects.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Digital vs. Analog vs. Tape</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Digital repeats stay clean; analog (BBD) and tape repeats darken and degrade each pass — that warmth is why tape echoes like the Volante are loved.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Listen -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it</h2>
+        </div>
+        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
+            <button id="pluck" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                <i data-feather="play" style="width:16px;height:16px"></i> Pluck a note
+            </button>
+            <p class="text-textMuted text-xs">
+                A real Web Audio feedback delay using your settings. Crank feedback and listen to the repeats stack up.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marauder Peninsula</a>
+        <span>Delay</span>
+    </footer>
+
+</div>
+<script>
+feather.replace();
+
+const D = { time: 375, feedback: 45, mix: 40 };
+
+// ---- Echo bars visualizer ----
+const cv = document.getElementById('echoes');
+const ctx = cv.getContext('2d');
+function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr;
+    cv.height = 200 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', () => { sizeCanvas(); draw(); });
+
+function draw() {
+    const w = cv.clientWidth, h = 200;
+    ctx.clearRect(0,0,w,h);
+    const pad = 30, baseY = h - 28;
+    const fb = D.feedback / 100;
+    // total window scales with delay time so longer times spread out
+    const windowMs = Math.max(2000, D.time * 8);
+    const X = ms => pad + (ms / windowMs) * (w - pad*2);
+
+    // baseline
+    ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, baseY); ctx.lineTo(w - pad, baseY); ctx.stroke();
+
+    // dry hit + repeats
+    let amp = 1, ms = 0, i = 0;
+    while (amp > 0.02 && i < 40 && X(ms) < w - pad) {
+        const x = X(ms);
+        const barH = amp * (baseY - 20);
+        ctx.fillStyle = i === 0 ? '#ffffff' : '#ff4a00';
+        ctx.globalAlpha = i === 0 ? 1 : Math.max(0.25, amp);
+        ctx.fillRect(x - 3, baseY - barH, 6, barH);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#888'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+        ctx.fillText(i === 0 ? 'DRY' : Math.round(ms)+'ms', x, baseY + 14);
+        if (i === 0) amp = fb; else amp *= fb;   // first repeat = feedback level
+        ms += D.time; i++;
+    }
+}
+
+function refresh() {
+    document.getElementById('timeVal').textContent = D.time + ' ms';
+    document.getElementById('fbVal').textContent = D.feedback + '%';
+    document.getElementById('mixVal').textContent = D.mix + '%';
+    draw();
+}
+function bind(id, key) {
+    document.getElementById(id).addEventListener('input', e => { D[key] = +e.target.value; refresh(); });
+}
+bind('time','time'); bind('feedback','feedback'); bind('mix','mix');
+</script>
+<script>
+// ---- Web Audio feedback delay ----
+let actx;
+function pluck() {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const ac = actx, now = ac.currentTime;
+
+    const dry = ac.createGain();
+    dry.gain.setValueAtTime(0, now);
+    dry.gain.linearRampToValueAtTime(0.5, now + 0.005);
+    dry.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    [330, 495].forEach((f,i) => {
+        const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.value = i ? 0.4 : 0.8;
+        o.connect(g).connect(dry); o.start(now); o.stop(now + 0.45);
+    });
+
+    const master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+    const mix = D.mix / 100;
+    const dryOut = ac.createGain(); dryOut.gain.value = 1 - mix * 0.5;
+    dry.connect(dryOut).connect(master);
+
+    const delay = ac.createDelay(2.0);
+    delay.delayTime.value = Math.min(1.95, D.time / 1000);
+    const fb = ac.createGain(); fb.gain.value = Math.min(0.92, D.feedback / 100);
+    // slight HF rolloff in the loop so repeats darken (like real delays)
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4500;
+    const wet = ac.createGain(); wet.gain.value = mix;
+
+    dry.connect(delay);
+    delay.connect(lp).connect(fb).connect(delay);
+    delay.connect(wet).connect(master);
+}
+document.getElementById('pluck').addEventListener('click', pluck);
+
+sizeCanvas();
+refresh();
+</script>
+</body>
+</html>

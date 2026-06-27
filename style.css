@@ -1,0 +1,143 @@
+/* ============================================
+   xxar's Marauder Peninsula — Shared Styles
+   ============================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+    --color-darker:   #050505;
+    --color-dark:     #0a0a0a;
+    --color-panel:    #121212;
+    --color-border:   #2a2a2a;
+    --color-accent:   #ff4a00;
+    --color-accent2:  #ff6a2b;
+    --color-muted:    #888888;
+    --color-white:    #ffffff;
+    --font-sans:      'Inter', sans-serif;
+    --font-mono:      'JetBrains Mono', monospace;
+}
+
+body {
+    background-color: var(--color-darker);
+    color: var(--color-white);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 22px; width: 22px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    cursor: pointer;
+    margin-top: -9px;
+    box-shadow: 0 0 10px rgba(255,74,0,0.5);
+    transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%; height: 4px;
+    cursor: pointer;
+    background: var(--color-border);
+    border-radius: 2px;
+}
+
+.panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+.value-box {
+    background: var(--color-dark);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    transition: border-color 0.2s;
+}
+.value-box:hover  { border-color: var(--color-accent2); }
+.value-box.active { border-color: var(--color-accent);  }
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+}
+.back-link:hover { color: var(--color-accent); }
+
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: rgba(255,74,0,0.12);
+    color: var(--color-accent);
+    border: 1px solid rgba(255,74,0,0.3);
+}
+
+.knob-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+.knob-label {
+    font-size: 0.62rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+}
+.knob-val {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--color-white);
+}
+
+.tooltip-box {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 13px;
+    width: 210px;
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: #ccc;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.18s;
+    z-index: 50;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    white-space: normal;
+    text-align: left;
+}
+.tooltip-box::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #333;
+}
+.knob-wrap:hover .tooltip-box,
+.knob-wrap.active .tooltip-box { opacity: 1; }

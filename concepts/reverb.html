@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // Reverb</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Concepts</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="radio" class="text-accent"></i> Reverb
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Space — the sound of a room around the signal</p>
+            </div>
+            <span class="tag">Space</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            Reverb is what you get when sound <strong class="text-white">bounces off thousands of surfaces</strong>
+            in a space and arrives at your ears as a dense, decaying cloud of reflections. Unlike a delay's
+            distinct repeats, reverb is a smooth <strong class="text-accent">wash of tails</strong> that places
+            your sound in a room — from a tight booth to a vast cathedral.
+        </p>
+    </section>
+
+    <!-- Visualizer -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Visualize</span>
+            <h2 class="text-lg font-semibold tracking-tight">Reflections building into a tail</h2>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="tail" class="w-full" style="height:200px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                After the dry hit comes a short gap (<span class="text-white">pre-delay</span>), then sparse
+                <span class="text-white">early reflections</span>, then a dense <span class="text-accent">decaying tail</span>.
+            </p>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Size / Decay — <span id="decayVal" class="knob-val"></span></label>
+                    <input id="decay" type="range" min="0.2" max="6" step="0.1" value="2.2">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Pre-delay — <span id="preVal" class="knob-val"></span></label>
+                    <input id="predelay" type="range" min="0" max="120" step="1" value="20">
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Damping (HF rolloff) — <span id="dampVal" class="knob-val"></span></label>
+                    <input id="damping" type="range" min="0" max="100" step="1" value="40">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Mix — <span id="mixVal" class="knob-val"></span></label>
+                    <input id="mix" type="range" min="0" max="100" step="1" value="35">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Concepts -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Concepts</span>
+            <h2 class="text-lg font-semibold tracking-tight">The essentials</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Size / Decay (RT60)</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How long the tail takes to fade out — small rooms decay fast, halls and cathedrals ring for seconds. The single biggest "space" control.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Pre-delay</h3>
+                <p class="text-textMuted text-xs leading-relaxed">The gap before the reverb starts. A little pre-delay keeps the dry sound clear and upfront while the tail blooms behind it — great for vocals.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Damping</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How quickly high frequencies fade in the tail. Soft, absorbent rooms (carpet, curtains) damp highs fast; hard tile/stone rooms stay bright.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Early reflections vs. tail</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Early reflections (the first bounces) tell your ear the room's shape/size; the diffuse tail is the dense wash that follows. Together they define the space.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Types: room, hall, plate, spring</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Plates are smooth &amp; dense (classic on vocals/snares); springs are boingy &amp; vintage (the Volante has one); rooms/halls model real acoustic spaces.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Mix &amp; sends</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Reverb is usually run on a send so several sources share one space. Keep it lower than you think — a little glues a mix; too much washes it out.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Listen -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it</h2>
+        </div>
+        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
+            <button id="pluck" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                <i data-feather="play" style="width:16px;height:16px"></i> Pluck a note
+            </button>
+            <p class="text-textMuted text-xs">
+                A convolution reverb built from a generated impulse response using your Size, Damping and Pre-delay.
+                Bigger size = longer tail.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marauder Peninsula</a>
+        <span>Reverb</span>
+    </footer>
+
+</div>
+<script>
+feather.replace();
+
+const R = { decay: 2.2, predelay: 20, damping: 40, mix: 35 };
+
+// ---- Visualizer: pre-delay gap, early reflections, decaying tail ----
+const cv = document.getElementById('tail');
+const ctx = cv.getContext('2d');
+function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr;
+    cv.height = 200 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', () => { sizeCanvas(); draw(); });
+
+function draw() {
+    const w = cv.clientWidth, h = 200;
+    ctx.clearRect(0,0,w,h);
+    const pad = 26, baseY = h - 26;
+    const windowMs = 200 + R.decay * 1000;   // show pre-delay + whole tail
+    const X = ms => pad + (ms / windowMs) * (w - pad*2);
+
+    ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, baseY); ctx.lineTo(w - pad, baseY); ctx.stroke();
+
+    // dry hit
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(X(0) - 3, baseY - (baseY - 16), 6, baseY - 16);
+    ctx.fillStyle = '#888'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('DRY', X(0), baseY + 14);
+
+    // early reflections — a few sparse taps after pre-delay
+    const start = R.predelay;
+    ctx.fillStyle = '#cccccc';
+    for (let i = 0; i < 6; i++) {
+        const ms = start + i * (12 + Math.random()*18);
+        const a = 0.6 - i*0.08;
+        ctx.fillRect(X(ms) - 1.5, baseY - a*(baseY-30), 3, a*(baseY-30));
+    }
+
+    // diffuse tail — exponential decay envelope (RT60 ~ decay seconds)
+    ctx.strokeStyle = '#ff4a00'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    const tailStart = start + 70;
+    for (let ms = tailStart; ms <= windowMs; ms += 6) {
+        const t = (ms - tailStart) / 1000;
+        const env = Math.exp(-6.9 * t / R.decay); // -60dB at t=decay
+        const jitter = 0.85 + 0.15*Math.sin(ms/7);
+        const y = baseY - env * jitter * (baseY - 30);
+        if (ms === tailStart) ctx.moveTo(X(ms), y); else ctx.lineTo(X(ms), y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#888'; ctx.fillText('tail (' + R.decay.toFixed(1) + 's)', X((tailStart+windowMs)/2), baseY + 14);
+}
+
+function refresh() {
+    document.getElementById('decayVal').textContent = R.decay.toFixed(1) + ' s';
+    document.getElementById('preVal').textContent = R.predelay + ' ms';
+    document.getElementById('dampVal').textContent = R.damping + '%';
+    document.getElementById('mixVal').textContent = R.mix + '%';
+    draw();
+}
+function bind(id, key) {
+    document.getElementById(id).addEventListener('input', e => { R[key] = +e.target.value; refresh(); });
+}
+bind('decay','decay'); bind('predelay','predelay'); bind('damping','damping'); bind('mix','mix');
+</script>
+<script>
+// ---- Web Audio convolution reverb ----
+let actx;
+function buildIR(ac) {
+    const len = Math.max(1, Math.floor(ac.sampleRate * R.decay));
+    const ir = ac.createBuffer(2, len, ac.sampleRate);
+    // damping rolls off highs faster over time
+    const damp = R.damping / 100;
+    for (let ch = 0; ch < 2; ch++) {
+        const data = ir.getChannelData(ch);
+        let last = 0;
+        for (let i = 0; i < len; i++) {
+            const t = i / len;
+            const env = Math.pow(1 - t, 1 + R.decay);   // decaying tail
+            let n = (Math.random()*2 - 1) * env;
+            // simple one-pole low-pass increasing with damping = darker tail
+            const a = damp * (0.2 + 0.7*t);
+            n = last + (n - last) * (1 - a);
+            last = n;
+            data[i] = n;
+        }
+    }
+    return ir;
+}
+function pluck() {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const ac = actx, now = ac.currentTime;
+
+    const dry = ac.createGain();
+    dry.gain.setValueAtTime(0, now);
+    dry.gain.linearRampToValueAtTime(0.5, now + 0.005);
+    dry.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    [330, 495].forEach((f,i) => {
+        const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.value = i ? 0.4 : 0.8;
+        o.connect(g).connect(dry); o.start(now); o.stop(now + 0.45);
+    });
+
+    const master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+    const mix = R.mix / 100;
+    const dryOut = ac.createGain(); dryOut.gain.value = 1 - mix * 0.5;
+    dry.connect(dryOut).connect(master);
+
+    const pre = ac.createDelay(0.5); pre.delayTime.value = R.predelay / 1000;
+    const conv = ac.createConvolver(); conv.buffer = buildIR(ac);
+    const wet = ac.createGain(); wet.gain.value = mix * 1.2;
+    dry.connect(pre).connect(conv).connect(wet).connect(master);
+}
+document.getElementById('pluck').addEventListener('click', pluck);
+
+sizeCanvas();
+refresh();
+</script>
+</body>
+</html>

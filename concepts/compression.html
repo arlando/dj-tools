@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marauder Peninsula // Compression</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Concepts</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="minimize-2" class="text-accent"></i> Compression
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Controlling dynamic range — how loud and quiet relate</p>
+            </div>
+            <span class="tag">Dynamics</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            A compressor <strong class="text-white">turns down the loud parts</strong> of a signal so the
+            difference between loud and quiet shrinks. Once you've tamed the peaks you can raise the whole thing
+            back up (make-up gain), so the quiet detail comes forward and the overall sound feels
+            <strong class="text-accent">fuller, punchier and more controlled</strong>.
+        </p>
+    </section>
+
+    <!-- Transfer curve visualizer -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Visualize</span>
+            <h2 class="text-lg font-semibold tracking-tight">The transfer curve</h2>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="curve" class="w-full" style="height:280px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                Input level (x) vs. output level (y). Below the <span class="text-white">threshold</span> the line is 1:1.
+                Above it, the slope flattens by the <span class="text-accent">ratio</span> — that's gain reduction.
+            </p>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Threshold — <span id="thrVal" class="knob-val"></span></label>
+                    <input id="threshold" type="range" min="-60" max="0" step="1" value="-24">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Ratio — <span id="ratVal" class="knob-val"></span></label>
+                    <input id="ratio" type="range" min="1" max="20" step="0.5" value="4">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Knee — <span id="kneeVal" class="knob-val"></span></label>
+                    <input id="knee" type="range" min="0" max="40" step="1" value="12">
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Attack — <span id="atkVal" class="knob-val"></span></label>
+                    <input id="attack" type="range" min="0" max="200" step="1" value="20">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Release — <span id="relVal" class="knob-val"></span></label>
+                    <input id="release" type="range" min="20" max="1000" step="10" value="250">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Make-up Gain — <span id="gainVal" class="knob-val"></span></label>
+                    <input id="makeup" type="range" min="0" max="24" step="1" value="0">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The controls explained -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Controls</span>
+            <h2 class="text-lg font-semibold tracking-tight">What each knob does</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Threshold</h3>
+                <p class="text-textMuted text-xs leading-relaxed">The level where compression kicks in. Only signal above it gets turned down — lower threshold = more of the signal is compressed.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Ratio</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How hard you turn it down above the threshold. 4:1 means 4&nbsp;dB in &rarr; 1&nbsp;dB out. High ratios (10:1+) act like a limiter.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Attack</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How fast it clamps down once you cross the threshold. Fast = catches transients/snappy peaks; slow = lets the initial punch through.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Release</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How fast it lets go after the signal drops back below threshold. Too fast can "pump"; too slow stays clamped and chokes the groove.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Knee</h3>
+                <p class="text-textMuted text-xs leading-relaxed">How abruptly compression engages around the threshold. A soft knee eases in gently and transparently; a hard knee grabs suddenly.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Make-up Gain</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Since you turned the peaks down, the whole signal is quieter. Make-up gain raises it back so the now-controlled signal feels louder and fuller.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Listen -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it</h2>
+        </div>
+        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
+            <button id="play" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                <i data-feather="play" style="width:16px;height:16px"></i> Play a pulsing loop
+            </button>
+            <label class="flex items-center gap-2 text-xs text-textMuted cursor-pointer">
+                <input id="bypass" type="checkbox"> Bypass (compare uncompressed)
+            </label>
+            <p class="text-textMuted text-xs">
+                A pulsing tone with sharp transients runs through a real Web Audio compressor with your settings.
+                Toggle bypass to A/B it.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marauder Peninsula</a>
+        <span>Compression</span>
+    </footer>
+
+</div>
+<script>
+feather.replace();
+
+const C = { threshold:-24, ratio:4, knee:12, attack:20, release:250, makeup:0 };
+
+// ---- Transfer curve canvas ----
+const cv = document.getElementById('curve');
+const ctx = cv.getContext('2d');
+function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr;
+    cv.height = 280 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', () => { sizeCanvas(); draw(); });
+
+// Output dB for a given input dB (soft-knee model)
+function outDb(x) {
+    const { threshold:t, ratio:r, knee:k } = C;
+    if (k > 0 && (2*(x - t)) >= -k && (2*(x - t)) <= k) {
+        const d = (x - t + k/2);
+        return x + ((1/r - 1) * d * d) / (2*k);
+    }
+    if (x <= t) return x;
+    return t + (x - t) / r;
+}
+
+function draw() {
+    const w = cv.clientWidth, h = 280;
+    ctx.clearRect(0,0,w,h);
+    const pad = 36;
+    const lo = -60, hi = 0;
+    const X = db => pad + ((db - lo)/(hi - lo)) * (w - pad*2);
+    const Y = db => (h - pad) - ((db - lo)/(hi - lo)) * (h - pad*2);
+
+    // grid
+    ctx.strokeStyle = '#1f1f1f'; ctx.lineWidth = 1;
+    for (let d = lo; d <= hi; d += 12) {
+        ctx.beginPath(); ctx.moveTo(X(d), Y(lo)); ctx.lineTo(X(d), Y(hi)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(X(lo), Y(d)); ctx.lineTo(X(hi), Y(d)); ctx.stroke();
+    }
+    // 1:1 reference
+    ctx.strokeStyle = '#3a3a3a'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(X(lo), Y(lo)); ctx.lineTo(X(hi), Y(hi)); ctx.stroke();
+    ctx.setLineDash([]);
+    // threshold marker
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath(); ctx.moveTo(X(C.threshold), Y(lo)); ctx.lineTo(X(C.threshold), Y(hi)); ctx.stroke();
+
+    // transfer curve (with make-up)
+    ctx.strokeStyle = '#ff4a00'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i <= 240; i++) {
+        const x = lo + (i/240)*(hi - lo);
+        const y = Math.min(hi, outDb(x) + C.makeup);
+        if (i === 0) ctx.moveTo(X(x), Y(y)); else ctx.lineTo(X(x), Y(y));
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#888'; ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'center'; ctx.fillText('INPUT (dB)', w/2, h - 6);
+    ctx.save(); ctx.translate(10, h/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('OUTPUT (dB)', 0, 0); ctx.restore();
+}
+
+function refresh() {
+    document.getElementById('thrVal').textContent = C.threshold + ' dB';
+    document.getElementById('ratVal').textContent = C.ratio + ':1';
+    document.getElementById('kneeVal').textContent = C.knee + ' dB';
+    document.getElementById('atkVal').textContent = C.attack + ' ms';
+    document.getElementById('relVal').textContent = C.release + ' ms';
+    document.getElementById('gainVal').textContent = '+' + C.makeup + ' dB';
+    draw();
+    if (comp) applyToNodes();
+}
+
+function bind(id, key) {
+    document.getElementById(id).addEventListener('input', e => { C[key] = +e.target.value; refresh(); });
+}
+bind('threshold','threshold'); bind('ratio','ratio'); bind('knee','knee');
+bind('attack','attack'); bind('release','release'); bind('makeup','makeup');
+</script>
+<script>
+// ---- Web Audio demo ----
+let actx, comp, makeupGain, srcGain, loopTimer;
+function applyToNodes() {
+    const t = actx.currentTime;
+    comp.threshold.setValueAtTime(C.threshold, t);
+    comp.ratio.setValueAtTime(C.ratio, t);
+    comp.knee.setValueAtTime(C.knee, t);
+    comp.attack.setValueAtTime(C.attack/1000, t);
+    comp.release.setValueAtTime(C.release/1000, t);
+    const bypass = document.getElementById('bypass').checked;
+    comp.ratio.setValueAtTime(bypass ? 1 : C.ratio, t);
+    makeupGain.gain.setValueAtTime(bypass ? 1 : Math.pow(10, C.makeup/20), t);
+}
+
+function hit(at) {
+    // a short, punchy transient: noisy click + tone body
+    const o = actx.createOscillator(); o.type = 'sine'; o.frequency.value = 140;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.9, at + 0.004); // sharp attack/transient
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.35);
+    o.connect(g).connect(srcGain);
+    o.start(at); o.stop(at + 0.4);
+}
+
+function start() {
+    if (!actx) {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        comp = actx.createDynamicsCompressor();
+        makeupGain = actx.createGain();
+        srcGain = actx.createGain(); srcGain.gain.value = 0.9;
+        srcGain.connect(comp).connect(makeupGain).connect(actx.destination);
+    }
+    if (actx.state === 'suspended') actx.resume();
+    applyToNodes();
+    const beat = 0.5;
+    const schedule = () => { const now = actx.currentTime; for (let i=0;i<4;i++) hit(now + i*beat); };
+    schedule();
+    clearInterval(loopTimer);
+    loopTimer = setInterval(schedule, beat*4*1000);
+}
+let playing = false;
+const playBtn = document.getElementById('play');
+playBtn.addEventListener('click', () => {
+    playing = !playing;
+    if (playing) { start(); playBtn.innerHTML = '<i data-feather="square" style="width:16px;height:16px"></i> Stop'; }
+    else { clearInterval(loopTimer); playBtn.innerHTML = '<i data-feather="play" style="width:16px;height:16px"></i> Play a pulsing loop'; }
+    feather.replace();
+});
+document.getElementById('bypass').addEventListener('change', () => { if (comp) applyToNodes(); });
+
+// init
+sizeCanvas();
+refresh();
+</script>
+</body>
+</html>
