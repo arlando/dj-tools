@@ -183,13 +183,24 @@
             <span class="tag">Listen</span>
             <h2 class="text-lg font-semibold tracking-tight">Hear it (light recreation)</h2>
         </div>
-        <div class="panel p-5 flex flex-col sm:flex-row items-center gap-4">
-            <button id="play" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
-                <i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud
-            </button>
-            <p class="text-textMuted text-xs">
-                A simple in-browser granular engine sprays short grains from a held tone, then runs them through
-                feedback, the resonant filter and reverb using your settings. It <em>lightly</em> mimics the pedal.
+        <div class="panel p-5">
+            <div class="flex flex-col sm:flex-row items-center gap-4 mb-5">
+                <button id="play" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                    <i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud
+                </button>
+                <button id="panic" class="rounded-lg px-4 py-3 font-semibold text-sm flex items-center gap-2 value-box" style="color:var(--color-accent)">
+                    <i data-feather="volume-x" style="width:16px;height:16px"></i> Mute / Panic
+                </button>
+                <p class="text-textMuted text-xs">
+                    A simple in-browser granular engine. <strong>Mute / Panic</strong> instantly silences everything —
+                    including any feedback or reverb tail. Feedback is clamped &amp; limited so it can't run away.
+                </p>
+            </div>
+            <!-- Spectrum analyzer 0 - 20kHz -->
+            <canvas id="spectrum" class="w-full" style="height:140px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                Live output spectrum — <span class="font-mono">0&nbsp;Hz</span> on the left to
+                <span class="font-mono">20&nbsp;kHz</span> on the right (log scale). Watch how Filter, Activity and Space reshape it.
             </p>
         </div>
     </section>
@@ -298,7 +309,7 @@ function drawCloud(ts) {
 // ============================================================
 //  Web Audio — light granular engine
 // ============================================================
-let actx, source, srcGain, filter, fbDelay, fbGain, conv, wetGain, dryGain, master, grainTimer;
+let actx, filter, fbDelay, fbGain, fbDamp, conv, spaceGain, wetGain, limiter, master, analyser, grainTimer;
 let running = false;
 
 function applyTone() {
@@ -306,15 +317,13 @@ function applyTone() {
     const t = actx.currentTime;
     // Filter: resonant low-pass, frequency from knob
     filter.frequency.setTargetAtTime(300 + (M.filter/100) * 7000, t, 0.05);
-    filter.Q.setTargetAtTime(2 + (M.filter/100) * 10, t, 0.05);
-    fbGain.gain.setTargetAtTime(Math.min(0.9, M.reflections/100), t, 0.05);
+    // keep resonance modest so the loop can't scream
+    filter.Q.setTargetAtTime(1 + (M.filter/100) * 6, t, 0.05);
+    // Feedback clamped to a safe max (0.7) so it always decays, not runs away
+    fbGain.gain.setTargetAtTime(Math.min(0.7, (M.reflections/100) * 0.7), t, 0.05);
     wetGain.gain.setTargetAtTime(M.mix/100, t, 0.05);
-    dryGain.gain.setTargetAtTime(1 - (M.mix/100)*0.6, t, 0.05);
-    conv.wet = M.space/100;
     spaceGain.gain.setTargetAtTime((M.space/100) * 0.9, t, 0.05);
 }
-
-let spaceGain;
 function buildReverbIR(ac, seconds) {
     const len = Math.floor(ac.sampleRate * seconds);
     const ir = ac.createBuffer(2, len, ac.sampleRate);
@@ -343,43 +352,117 @@ function grain() {
     o.start(now); o.stop(now + dur + 0.02);
 }
 
-function start() {
-    if (!actx) {
-        actx = new (window.AudioContext || window.webkitAudioContext)();
-        filter = actx.createBiquadFilter(); filter.type = 'lowpass';
-        fbDelay = actx.createDelay(1.0); fbDelay.delayTime.value = 0.28;
-        fbGain = actx.createGain();
-        conv = actx.createConvolver(); conv.buffer = buildReverbIR(actx, 2.5);
-        spaceGain = actx.createGain();
-        wetGain = actx.createGain();
-        dryGain = actx.createGain();
-        master = actx.createGain(); master.gain.value = 0.8; master.connect(actx.destination);
+function buildGraph() {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    filter = actx.createBiquadFilter(); filter.type = 'lowpass';
+    fbDelay = actx.createDelay(1.0); fbDelay.delayTime.value = 0.28;
+    fbGain = actx.createGain();
+    // damping low-pass INSIDE the feedback loop so repeats decay (no runaway)
+    fbDamp = actx.createBiquadFilter(); fbDamp.type = 'lowpass'; fbDamp.frequency.value = 3500;
+    conv = actx.createConvolver(); conv.buffer = buildReverbIR(actx, 2.5);
+    spaceGain = actx.createGain();
+    wetGain = actx.createGain();
+    // brick-wall-ish limiter to catch any peaks before the speakers
+    limiter = actx.createDynamicsCompressor();
+    limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20;
+    limiter.attack.value = 0.003; limiter.release.value = 0.25;
+    analyser = actx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.8;
+    master = actx.createGain(); master.gain.value = 0.8;
+    master.connect(limiter).connect(analyser).connect(actx.destination);
 
-        // grains -> filter -> (feedback loop) -> wet -> master
-        filter.connect(fbDelay); fbDelay.connect(fbGain); fbGain.connect(filter); // regeneration
-        filter.connect(wetGain).connect(master);
-        // parallel reverb send
-        filter.connect(conv).connect(spaceGain).connect(master);
-    }
+    // grains -> filter -> feedback loop (delay -> damp -> gain -> back) -> wet -> master
+    filter.connect(fbDelay); fbDelay.connect(fbDamp); fbDamp.connect(fbGain); fbGain.connect(fbDelay);
+    fbGain.connect(filter);
+    filter.connect(wetGain).connect(master);
+    // parallel reverb send
+    filter.connect(conv).connect(spaceGain).connect(master);
+}
+
+function start() {
+    if (!actx) buildGraph();
     if (actx.state === 'suspended') actx.resume();
+    master.gain.setTargetAtTime(0.8, actx.currentTime, 0.02); // un-mute if previously panicked
     applyTone();
     const period = () => 130 - (M.activity) * 1.1; // ms between grains (Activity = density)
     const tick = () => { grain(); grainTimer = setTimeout(tick, Math.max(15, period())); };
     tick();
 }
 
+// Hard stop: cut grains, silence master, and kill the feedback loop + reverb tail
+function panic() {
+    clearTimeout(grainTimer);
+    running = false;
+    if (actx) {
+        const t = actx.currentTime;
+        master.gain.cancelScheduledValues(t);
+        master.gain.setTargetAtTime(0, t, 0.01);      // instant fade to silence
+        if (fbGain) fbGain.gain.setTargetAtTime(0, t, 0.01); // stop regeneration
+    }
+    playBtn.innerHTML = '<i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud';
+    feather.replace();
+}
+
 const playBtn = document.getElementById('play');
 playBtn.addEventListener('click', () => {
     running = !running;
-    if (running) { start(); playBtn.innerHTML = '<i data-feather="square" style="width:16px;height:16px"></i> Stop'; }
-    else { clearTimeout(grainTimer); playBtn.innerHTML = '<i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud'; }
-    feather.replace();
+    if (running) { start(); playBtn.innerHTML = '<i data-feather="square" style="width:16px;height:16px"></i> Stop'; feather.replace(); }
+    else { panic(); }
 });
+document.getElementById('panic').addEventListener('click', panic);
+
+// ---- Spectrum analyzer (0 - 20,000 Hz, log scale) ----
+const sc = document.getElementById('spectrum');
+const sctx = sc.getContext('2d');
+function sizeSpectrum() {
+    const dpr = window.devicePixelRatio || 1;
+    sc.width = sc.clientWidth * dpr; sc.height = 140 * dpr;
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeSpectrum);
+
+function drawSpectrum() {
+    const w = sc.clientWidth, h = 140;
+    sctx.clearRect(0,0,w,h);
+    // frequency gridlines
+    const marks = [100, 1000, 10000, 20000];
+    const nyq = actx ? actx.sampleRate/2 : 24000;
+    const fx = f => (Math.log10(Math.max(20,f)/20) / Math.log10(20000/20)) * w;
+    sctx.font = '9px JetBrains Mono'; sctx.textAlign = 'center';
+    marks.forEach(f => {
+        const x = fx(f);
+        sctx.strokeStyle = '#1c1c1c'; sctx.beginPath(); sctx.moveTo(x, 0); sctx.lineTo(x, h-14); sctx.stroke();
+        sctx.fillStyle = '#666'; sctx.fillText(f >= 1000 ? (f/1000)+'k' : f+'', x, h-3);
+    });
+
+    if (analyser && running) {
+        const bins = analyser.frequencyBinCount;
+        const data = new Uint8Array(bins);
+        analyser.getByteFrequencyData(data);
+        sctx.beginPath();
+        for (let i = 1; i < bins; i++) {
+            const freq = i / bins * nyq;
+            if (freq > 20000) break;
+            const x = fx(freq);
+            const y = h - 14 - (data[i]/255) * (h - 20);
+            if (i === 1) sctx.moveTo(x, y); else sctx.lineTo(x, y);
+        }
+        sctx.lineTo(w, h-14);
+        sctx.strokeStyle = '#ff4a00'; sctx.lineWidth = 1.5; sctx.stroke();
+        sctx.lineTo(0, h-14); sctx.closePath();
+        sctx.fillStyle = 'rgba(255,74,0,0.15)'; sctx.fill();
+    } else {
+        sctx.fillStyle = '#444'; sctx.textAlign = 'center';
+        sctx.fillText('— signal idle —', w/2, h/2);
+    }
+    requestAnimationFrame(drawSpectrum);
+}
 
 // ---- Init ----
 sizeCanvas();
+sizeSpectrum();
 refresh();
 requestAnimationFrame(drawCloud);
+requestAnimationFrame(drawSpectrum);
 </script>
 </body>
 </html>
