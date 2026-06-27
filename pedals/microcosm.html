@@ -200,6 +200,186 @@
     </footer>
 
 </div>
-<script>feather.replace();</script>
+<script>
+feather.replace();
+
+const M = {
+    activity: 45, shape: 50, reflections: 40, space: 30, filter: 80, mix: 55,
+    cat: 'microloop', sub: 0.5
+};
+
+const CAT_DESC = {
+    microloop: 'Micro Loop: captures tiny slices of your playing and loops them rhythmically — stuttering, repeating fragments locked to the subdivision.',
+    glitch:    'Glitch: chopped, stuttered, re-triggered fragments — broken, rhythmic, digital artefacts and rapid-fire retriggers.',
+    granules:  'Granules: classic granular clouds — many overlapping grains pitched and scattered into smooth, evolving ambient textures.',
+    blocks:    'Blocks: arpeggiated / pitched grain patterns that build melodic, sequenced motifs from your input.'
+};
+
+function refresh() {
+    document.getElementById('actVal').textContent = M.activity + '%';
+    document.getElementById('shapeVal').textContent = M.shape + '%';
+    document.getElementById('refVal').textContent = M.reflections + '%';
+    document.getElementById('spaceVal').textContent = M.space + '%';
+    document.getElementById('filtVal').textContent = M.filter + '%';
+    document.getElementById('mixVal').textContent = M.mix + '%';
+    document.getElementById('catDesc').textContent = CAT_DESC[M.cat];
+    if (running) applyTone();
+}
+
+function bind(id, key) {
+    document.getElementById(id).addEventListener('input', e => { M[key] = +e.target.value; refresh(); });
+}
+bind('activity','activity'); bind('shape','shape'); bind('reflections','reflections');
+bind('space','space'); bind('filter','filter'); bind('mix','mix');
+
+function segGroup(containerId, key, attr, cast) {
+    document.querySelectorAll('#'+containerId+' button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('#'+containerId+' button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            M[key] = cast(b.dataset[attr]);
+            refresh();
+        });
+    });
+}
+segGroup('catBtns', 'cat', 'cat', v => v);
+segGroup('subBtns', 'sub', 'sub', v => parseFloat(v));
+</script>
+<script>
+// ---- Animated grain-cloud canvas ----
+const cv = document.getElementById('grains');
+const ctx = cv.getContext('2d');
+function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr;
+    cv.height = 240 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeCanvas);
+
+let dots = [];
+function drawCloud(ts) {
+    const w = cv.clientWidth, h = 240;
+    ctx.clearRect(0,0,w,h);
+
+    // spawn rate from Activity; grain size/spread from Shape
+    const rate = 0.02 + (M.activity/100) * 0.85;
+    const size = 1.5 + (M.shape/100) * 5;
+    if (Math.random() < rate) {
+        dots.push({
+            x: Math.random()*w,
+            y: h/2 + (Math.random()-0.5) * h * (0.3 + M.shape/130),
+            r: size * (0.5 + Math.random()),
+            life: 0, max: 40 + Math.random()*60
+        });
+    }
+    if (dots.length > 400) dots.splice(0, dots.length - 400);
+
+    // center "stream" line
+    ctx.strokeStyle = '#1c1c1c'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+
+    dots.forEach(d => {
+        d.life++;
+        d.x += 0.4; // drift in time
+        const a = Math.sin((d.life/d.max) * Math.PI); // grain envelope
+        ctx.fillStyle = 'rgba(255,74,0,' + (a*0.9).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2); ctx.fill();
+    });
+    dots = dots.filter(d => d.life < d.max && d.x < w + 10);
+
+    ctx.fillStyle = '#888'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+    ctx.fillText(M.cat.toUpperCase() + ' · ' + dots.length + ' grains', 12, 18);
+
+    requestAnimationFrame(drawCloud);
+}
+</script>
+<script>
+// ============================================================
+//  Web Audio — light granular engine
+// ============================================================
+let actx, source, srcGain, filter, fbDelay, fbGain, conv, wetGain, dryGain, master, grainTimer;
+let running = false;
+
+function applyTone() {
+    if (!actx) return;
+    const t = actx.currentTime;
+    // Filter: resonant low-pass, frequency from knob
+    filter.frequency.setTargetAtTime(300 + (M.filter/100) * 7000, t, 0.05);
+    filter.Q.setTargetAtTime(2 + (M.filter/100) * 10, t, 0.05);
+    fbGain.gain.setTargetAtTime(Math.min(0.9, M.reflections/100), t, 0.05);
+    wetGain.gain.setTargetAtTime(M.mix/100, t, 0.05);
+    dryGain.gain.setTargetAtTime(1 - (M.mix/100)*0.6, t, 0.05);
+    conv.wet = M.space/100;
+    spaceGain.gain.setTargetAtTime((M.space/100) * 0.9, t, 0.05);
+}
+
+let spaceGain;
+function buildReverbIR(ac, seconds) {
+    const len = Math.floor(ac.sampleRate * seconds);
+    const ir = ac.createBuffer(2, len, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch);
+        for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.5);
+    }
+    return ir;
+}
+
+// spawn one grain: a short windowed slice of a held tone
+function grain() {
+    const ac = actx, now = ac.currentTime;
+    const dur = 0.04 + (M.shape/100) * 0.18;           // grain length from Shape
+    const spread = (M.shape/100);                       // pitch/time scatter
+    const semis = (Math.random()*2 - 1) * 12 * spread;  // random pitch within an octave
+    const base = 196;                                   // G3-ish
+    const o = ac.createOscillator();
+    o.type = M.cat === 'glitch' ? 'square' : 'triangle';
+    o.frequency.value = base * Math.pow(2, semis/12);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.25, now + dur*0.3); // grain attack
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);   // grain decay
+    o.connect(g).connect(filter);
+    o.start(now); o.stop(now + dur + 0.02);
+}
+
+function start() {
+    if (!actx) {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        filter = actx.createBiquadFilter(); filter.type = 'lowpass';
+        fbDelay = actx.createDelay(1.0); fbDelay.delayTime.value = 0.28;
+        fbGain = actx.createGain();
+        conv = actx.createConvolver(); conv.buffer = buildReverbIR(actx, 2.5);
+        spaceGain = actx.createGain();
+        wetGain = actx.createGain();
+        dryGain = actx.createGain();
+        master = actx.createGain(); master.gain.value = 0.8; master.connect(actx.destination);
+
+        // grains -> filter -> (feedback loop) -> wet -> master
+        filter.connect(fbDelay); fbDelay.connect(fbGain); fbGain.connect(filter); // regeneration
+        filter.connect(wetGain).connect(master);
+        // parallel reverb send
+        filter.connect(conv).connect(spaceGain).connect(master);
+    }
+    if (actx.state === 'suspended') actx.resume();
+    applyTone();
+    const period = () => 130 - (M.activity) * 1.1; // ms between grains (Activity = density)
+    const tick = () => { grain(); grainTimer = setTimeout(tick, Math.max(15, period())); };
+    tick();
+}
+
+const playBtn = document.getElementById('play');
+playBtn.addEventListener('click', () => {
+    running = !running;
+    if (running) { start(); playBtn.innerHTML = '<i data-feather="square" style="width:16px;height:16px"></i> Stop'; }
+    else { clearTimeout(grainTimer); playBtn.innerHTML = '<i data-feather="play" style="width:16px;height:16px"></i> Start the grain cloud'; }
+    feather.replace();
+});
+
+// ---- Init ----
+sizeCanvas();
+refresh();
+requestAnimationFrame(drawCloud);
+</script>
 </body>
 </html>
