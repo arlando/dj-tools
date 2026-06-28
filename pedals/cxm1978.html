@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xxar's Marginalia Island // Chase Bliss CXM 1978 — How It Works</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: {
+                    dark: '#0a0a0a', darker: '#050505', panel: '#121212', border: '#2a2a2a',
+                    accent: '#ff4a00', accentHover: '#ff6a2b', textMuted: '#888888'
+                }
+            } }
+        }
+    </script>
+    <style>
+        .seg-btn { border:1px solid var(--color-border); color:var(--color-muted); }
+        .seg-btn.active { border-color:var(--color-accent); color:var(--color-accent); background:rgba(255,74,0,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
+
+    <header class="mb-6">
+        <a href="../index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> All Pedals</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="radio" class="text-accent"></i> Chase Bliss CXM 1978
+                </h1>
+                <p class="text-textMuted text-sm mt-1">Vintage digital studio reverb — how it works</p>
+            </div>
+            <span class="tag">Reverb</span>
+        </div>
+    </header>
+
+    <section class="panel p-5 mb-8">
+        <p class="text-sm leading-relaxed text-gray-300">
+            The CXM 1978 (a Chase Bliss × Meris collaboration) recreates the lush, dimensional sound of a
+            <strong class="text-white">late-'70s high-end digital rack reverb</strong> — think Lexicon&nbsp;224, the
+            "Blade Runner" sound. It offers three studio programs (<strong class="text-accent">Hall, Room, Plate</strong>),
+            a distinctive modulated tail, and a <strong class="text-white">Clock</strong> control that dials in the
+            grit of vintage converters. Lush, smooth, and unmistakably "expensive digital."
+        </p>
+    </section>
+
+    <!-- ===== Program / visualizer ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Program</span>
+            <h2 class="text-lg font-semibold tracking-tight">Three studio reverbs</h2>
+        </div>
+        <div class="panel p-5 mb-4">
+            <label class="knob-label block mb-2">Reverb type</label>
+            <div class="flex flex-wrap gap-2" id="typeBtns">
+                <button data-type="hall" class="seg-btn rounded px-3 py-1 text-xs active">Hall</button>
+                <button data-type="room" class="seg-btn rounded px-3 py-1 text-xs">Room</button>
+                <button data-type="plate" class="seg-btn rounded px-3 py-1 text-xs">Plate</button>
+            </div>
+            <p id="typeDesc" class="text-textMuted text-xs mt-3"></p>
+        </div>
+        <div class="panel p-5 mb-5">
+            <canvas id="tail" class="w-full" style="height:200px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                After the dry hit comes the <span class="text-white">pre-delay</span> gap, then the
+                <span class="text-accent">decaying tail</span> — wavering gently when Modulation is up.
+            </p>
+        </div>
+        <div class="panel p-5 grid gap-6 md:grid-cols-2">
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Time (decay) — <span id="timeVal" class="knob-val"></span></label>
+                    <input id="time" type="range" min="0.3" max="12" step="0.1" value="3.5">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Pre-Delay — <span id="preVal" class="knob-val"></span></label>
+                    <input id="predelay" type="range" min="0" max="200" step="1" value="20">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Tone — <span id="toneVal" class="knob-val"></span></label>
+                    <input id="tone" type="range" min="0" max="100" step="1" value="60">
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="knob-label block mb-1">Modulation — <span id="modVal" class="knob-val"></span></label>
+                    <input id="mod" type="range" min="0" max="100" step="1" value="35">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Clock (vintage lo-fi) — <span id="clockVal" class="knob-val"></span></label>
+                    <input id="clock" type="range" min="0" max="100" step="1" value="100">
+                </div>
+                <div>
+                    <label class="knob-label block mb-1">Mix — <span id="mixVal" class="knob-val"></span></label>
+                    <input id="mix" type="range" min="0" max="100" step="1" value="40">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Controls explained ===== -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Controls</span>
+            <h2 class="text-lg font-semibold tracking-tight">What each control does</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Type (Hall / Room / Plate)</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Picks the studio algorithm. Hall = big &amp; lush, Room = tighter &amp; more natural, Plate = smooth, dense &amp; bright — the classic vocal/snare sound.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Time</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Decay length (RT60). Short for ambience and slap, long for cavernous, evolving tails that ring for many seconds.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Pre-Delay</h3>
+                <p class="text-textMuted text-xs leading-relaxed">The gap before the reverb blooms. Keeps the dry source clear and upfront while the tail sits behind it — essential for big-but-defined sounds.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Tone</h3>
+                <p class="text-textMuted text-xs leading-relaxed">A tilt/filter on the tail. Darker for warm, distant spaces; brighter for airy, present halls. Tames or opens up the reverb's color.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Modulation</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Gently detunes/chouruses the tail — the signature lush, dimensional shimmer of vintage Lexicon-style units. Subtle = movement; high = watery, dreamy.</p>
+            </div>
+            <div class="panel p-5">
+                <h3 class="font-semibold text-sm mb-1 text-accent">Clock</h3>
+                <p class="text-textMuted text-xs leading-relaxed">Sets the virtual sample rate / converter quality. Full = clean &amp; modern; lowered = darker, grittier, aliased — the authentic late-'70s lo-fi digital character.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Listen ===== -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Listen</span>
+            <h2 class="text-lg font-semibold tracking-tight">Hear it (light recreation)</h2>
+        </div>
+        <div class="panel p-5">
+            <div class="flex flex-col sm:flex-row items-center gap-4 mb-5">
+                <button id="pluck" class="rounded-lg px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--color-accent);color:#111">
+                    <i data-feather="play" style="width:16px;height:16px"></i> Pluck a note
+                </button>
+                <button id="panic" class="rounded-lg px-4 py-3 font-semibold text-sm flex items-center gap-2 value-box" style="color:var(--color-accent)">
+                    <i data-feather="volume-x" style="width:16px;height:16px"></i> Mute / Panic
+                </button>
+                <p class="text-textMuted text-xs">
+                    A convolution reverb built live from your Type, Time, Tone, Modulation &amp; Clock settings,
+                    with a modulated, optionally lo-fi tail. <strong>Mute / Panic</strong> silences everything instantly.
+                </p>
+            </div>
+            <canvas id="spectrum" class="w-full" style="height:140px"></canvas>
+            <p class="text-textMuted text-xs text-center mt-2">
+                Live output spectrum — <span class="font-mono">0&nbsp;Hz</span> to
+                <span class="font-mono">20&nbsp;kHz</span> (log scale). Watch Tone &amp; Clock reshape the high end.
+            </p>
+        </div>
+    </section>
+
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="../index.html" class="back-link">xxar's Marginalia Island</a>
+        <span>CXM 1978 explainer</span>
+    </footer>
+
+</div>
+<script>
+feather.replace();
+
+const C = { type:'hall', time:3.5, predelay:20, tone:60, mod:35, clock:100, mix:40 };
+
+const TYPE_DESC = {
+    hall:  'Hall: the big, lush program — long, smooth, dimensional tails with a slow build. The classic spacious studio reverb.',
+    room:  'Room: tighter and more natural — shorter, denser reflections that place a source in a real-sounding space without washing it out.',
+    plate: 'Plate: smooth, bright and very dense from the first instant — the go-to vintage sound for vocals and snares.'
+};
+
+function refresh() {
+    document.getElementById('typeDesc').textContent = TYPE_DESC[C.type];
+    document.getElementById('timeVal').textContent = C.time.toFixed(1) + ' s';
+    document.getElementById('preVal').textContent = C.predelay + ' ms';
+    document.getElementById('toneVal').textContent = C.tone + '%';
+    document.getElementById('modVal').textContent = C.mod + '%';
+    document.getElementById('clockVal').textContent = C.clock === 100 ? 'Full' : C.clock + '%';
+    document.getElementById('mixVal').textContent = C.mix + '%';
+    draw();
+}
+function bind(id, key) {
+    document.getElementById(id).addEventListener('input', e => { C[key] = +e.target.value; refresh(); });
+}
+bind('time','time'); bind('predelay','predelay'); bind('tone','tone');
+bind('mod','mod'); bind('clock','clock'); bind('mix','mix');
+
+document.querySelectorAll('#typeBtns button').forEach(b => {
+    b.addEventListener('click', () => {
+        document.querySelectorAll('#typeBtns button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        C.type = b.dataset.type;
+        refresh();
+    });
+});
+
+// ---- Tail visualizer ----
+const cv = document.getElementById('tail');
+const ctx = cv.getContext('2d');
+function sizeTail() {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = cv.clientWidth * dpr; cv.height = 200 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeTail);
+
+function draw() {
+    const w = cv.clientWidth, h = 200, pad = 26, baseY = h - 26;
+    ctx.clearRect(0,0,w,h);
+    const windowMs = 200 + C.time * 1000;
+    const X = ms => pad + (ms / windowMs) * (w - pad*2);
+
+    ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, baseY); ctx.lineTo(w - pad, baseY); ctx.stroke();
+
+    // dry hit
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(X(0) - 3, baseY - (baseY - 16), 6, baseY - 16);
+    ctx.fillStyle = '#888'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('DRY', X(0), baseY + 14);
+
+    // build density depends on type; plate = instant dense, hall = slower build
+    const buildT = C.type === 'plate' ? 0.05 : C.type === 'room' ? 0.12 : 0.25;
+    const start = C.predelay;
+    const tailStart = start + 40;
+    ctx.strokeStyle = '#ff4a00'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let ms = tailStart; ms <= windowMs; ms += 5) {
+        const t = (ms - tailStart) / 1000;
+        const env = Math.exp(-6.9 * t / C.time);
+        const build = Math.min(1, t / buildT);
+        const wob = 1 + (C.mod/100) * 0.18 * Math.sin(ms / (60 - C.mod*0.3));
+        const y = baseY - env * build * wob * (baseY - 30);
+        if (ms === tailStart) ctx.moveTo(X(ms), y); else ctx.lineTo(X(ms), y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#888';
+    ctx.fillText(C.type.toUpperCase() + ' · ' + C.time.toFixed(1) + 's', X((tailStart+windowMs)/2), baseY + 14);
+}
+</script>
+<script>
+// ============================================================
+//  Web Audio — light vintage digital reverb
+// ============================================================
+let actx, master, limiter, analyser, running = false;
+
+// Build an impulse response shaped by type + time + tone + clock(lo-fi)
+function buildIR(ac) {
+    const len = Math.max(1, Math.floor(ac.sampleRate * C.time));
+    const ir = ac.createBuffer(2, len, ac.sampleRate);
+    const buildT = C.type === 'plate' ? 0.02 : C.type === 'room' ? 0.08 : 0.18;
+    const tone = C.tone / 100;
+    const clock = C.clock / 100;
+    const decim = Math.max(1, Math.round(1 + (1 - clock) * 7)); // sample-hold decimation
+    for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch);
+        let last = 0, held = 0;
+        for (let i = 0; i < len; i++) {
+            const t = i / ac.sampleRate;
+            const env = Math.pow(1 - i/len, 2.2);
+            const build = Math.min(1, t / buildT);
+            let n = (Math.random()*2 - 1) * env * build;
+            const a = 0.05 + (1 - tone) * 0.6;          // tone low-pass
+            n = last + (n - last) * (1 - a); last = n;
+            if (i % decim === 0) held = n;               // lo-fi decimation
+            d[i] = held;
+        }
+    }
+    return ir;
+}
+
+function buildGraph() {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    limiter = actx.createDynamicsCompressor();
+    limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20;
+    limiter.attack.value = 0.003; limiter.release.value = 0.25;
+    analyser = actx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.8;
+    master = actx.createGain(); master.gain.value = 0.9;
+    master.connect(limiter).connect(analyser).connect(actx.destination);
+}
+
+function pluck() {
+    if (!actx) buildGraph();
+    if (actx.state === 'suspended') actx.resume();
+    master.gain.setTargetAtTime(0.9, actx.currentTime, 0.02);
+    running = true;
+    const ac = actx, now = ac.currentTime;
+
+    const dry = ac.createGain();
+    dry.gain.setValueAtTime(0, now);
+    dry.gain.linearRampToValueAtTime(0.5, now + 0.005);
+    dry.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    [330, 495].forEach((f,i) => {
+        const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.value = i ? 0.4 : 0.8;
+        o.connect(g).connect(dry); o.start(now); o.stop(now + 0.45);
+    });
+
+    const mix = C.mix / 100;
+    const dryOut = ac.createGain(); dryOut.gain.value = 1 - mix * 0.5;
+    dry.connect(dryOut).connect(master);
+
+    const pre = ac.createDelay(0.5); pre.delayTime.value = C.predelay / 1000;
+    const conv = ac.createConvolver(); conv.buffer = buildIR(ac);
+    const toneF = ac.createBiquadFilter(); toneF.type = 'lowpass';
+    toneF.frequency.value = 1200 + (C.tone/100) * 9000;
+
+    // modulation: LFO-driven delay on the tail (chorused, dimensional)
+    const modDelay = ac.createDelay(0.05); modDelay.delayTime.value = 0.012;
+    const lfo = ac.createOscillator(); lfo.frequency.value = 0.6;
+    const lfoGain = ac.createGain(); lfoGain.gain.value = (C.mod/100) * 0.005;
+    lfo.connect(lfoGain).connect(modDelay.delayTime);
+    lfo.start(now); lfo.stop(now + C.time + 1);
+
+    const wet = ac.createGain(); wet.gain.value = mix * 1.3;
+    dry.connect(pre).connect(conv).connect(toneF).connect(modDelay).connect(wet).connect(master);
+}
+
+function panic() {
+    running = false;
+    if (actx) {
+        const t = actx.currentTime;
+        master.gain.cancelScheduledValues(t);
+        master.gain.setTargetAtTime(0, t, 0.01);
+    }
+}
+document.getElementById('pluck').addEventListener('click', pluck);
+document.getElementById('panic').addEventListener('click', panic);
+</script>
+<script>
+// ---- Spectrum analyzer (0 - 20,000 Hz, log scale) ----
+const sc = document.getElementById('spectrum');
+const sctx = sc.getContext('2d');
+function sizeSpectrum() {
+    const dpr = window.devicePixelRatio || 1;
+    sc.width = sc.clientWidth * dpr; sc.height = 140 * dpr;
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeSpectrum);
+
+function drawSpectrum() {
+    const w = sc.clientWidth, h = 140;
+    sctx.clearRect(0,0,w,h);
+    const marks = [100, 1000, 10000, 20000];
+    const nyq = actx ? actx.sampleRate/2 : 24000;
+    const fx = f => (Math.log10(Math.max(20,f)/20) / Math.log10(20000/20)) * w;
+    sctx.font = '9px JetBrains Mono'; sctx.textAlign = 'center';
+    marks.forEach(f => {
+        const x = fx(f);
+        sctx.strokeStyle = '#1c1c1c'; sctx.beginPath(); sctx.moveTo(x, 0); sctx.lineTo(x, h-14); sctx.stroke();
+        sctx.fillStyle = '#666'; sctx.fillText(f >= 1000 ? (f/1000)+'k' : f+'', x, h-3);
+    });
+    if (analyser) {
+        const bins = analyser.frequencyBinCount;
+        const data = new Uint8Array(bins);
+        analyser.getByteFrequencyData(data);
+        sctx.beginPath();
+        for (let i = 1; i < bins; i++) {
+            const freq = i / bins * nyq;
+            if (freq > 20000) break;
+            const x = fx(freq);
+            const y = h - 14 - (data[i]/255) * (h - 20);
+            if (i === 1) sctx.moveTo(x, y); else sctx.lineTo(x, y);
+        }
+        sctx.lineTo(w, h-14);
+        sctx.strokeStyle = '#ff4a00'; sctx.lineWidth = 1.5; sctx.stroke();
+        sctx.lineTo(0, h-14); sctx.closePath();
+        sctx.fillStyle = 'rgba(255,74,0,0.15)'; sctx.fill();
+    } else {
+        sctx.fillStyle = '#444'; sctx.fillText('— press Pluck to start —', w/2, h/2);
+    }
+    requestAnimationFrame(drawSpectrum);
+}
+
+// ---- Init ----
+sizeTail();
+sizeSpectrum();
+refresh();
+requestAnimationFrame(drawSpectrum);
+</script>
+</body>
+</html>
