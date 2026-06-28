@@ -125,6 +125,105 @@
         </div>
     </section>
 
+    <!-- Make-up gain deep dive -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Make-up Gain</span>
+            <h2 class="text-lg font-semibold tracking-tight">Getting the level back</h2>
+        </div>
+        <div class="panel p-5">
+            <p class="text-sm leading-relaxed text-gray-300 mb-4">
+                Compression only ever <strong class="text-white">turns things down</strong> — so after squashing the peaks,
+                the whole signal is quieter. <strong class="text-accent">Make-up gain</strong> (sometimes "output" or
+                "gain") raises everything back up. Because the loud peaks were tamed, you can push the average level
+                higher than before without clipping, so the result sounds <strong class="text-white">louder, denser and more present</strong>.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Unity / gain matching</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        To judge compression fairly, match the bypassed and compressed levels by ear (or meter).
+                        A rough starting point: add roughly half your gain reduction back as make-up
+                        (e.g. ~6&nbsp;dB of reduction &rarr; ~3&nbsp;dB make-up).
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">The "louder = better" trap</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        Make-up gain makes the signal louder, and louder almost always <em>seems</em> better. Always
+                        A/B at matched loudness (use Bypass below) so you're judging the <em>compression</em>, not just the volume bump.
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Auto make-up</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        Many compressors offer auto make-up that estimates the level lost and adds it back automatically.
+                        Convenient, but it can over-restore on dense material — trust your ears over the auto setting.
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Where it sits</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        Make-up gain is the <em>last</em> stage, after gain reduction. It doesn't change <em>how</em> the
+                        compressor reacts (threshold/ratio do that) — it only restores output level afterward.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Multiband / dual-band compression -->
+    <section class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Multiband</span>
+            <h2 class="text-lg font-semibold tracking-tight">Dual-band &amp; multiband compression</h2>
+        </div>
+        <div class="panel p-5">
+            <p class="text-sm leading-relaxed text-gray-300 mb-4">
+                A normal ("full-band") compressor reacts to the <em>whole</em> signal at once — so a loud kick drum can
+                duck the vocal, or a harsh cymbal can pump the whole mix. A <strong class="text-accent">multiband</strong>
+                compressor first splits the audio into frequency bands with crossovers, then compresses
+                <strong class="text-white">each band independently</strong> and recombines them. <strong>Dual-band</strong>
+                is the simplest case: just <strong class="text-white">low</strong> and <strong class="text-white">high</strong>,
+                split at one crossover frequency.
+            </p>
+            <div class="grid gap-4 sm:grid-cols-2 mb-4">
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Why split bands?</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        So loud lows don't trigger gain reduction on the highs (and vice-versa). You can tame a boomy
+                        low end without dulling the top, or control sibilance up top without squashing the body.
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Crossover frequency</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        The frequency where the signal is divided into bands. For dual-band, a crossover around
+                        150&ndash;300&nbsp;Hz separates the bass/kick region from everything above it.
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Per-band controls</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        Each band gets its own threshold, ratio, attack/release and make-up. You might gently glue the
+                        lows (slow, low ratio) while taming peaks in the highs (faster, higher ratio).
+                    </p>
+                </div>
+                <div class="value-box p-4">
+                    <h3 class="font-semibold text-sm mb-1 text-accent">Common uses</h3>
+                    <p class="text-textMuted text-xs leading-relaxed">
+                        Mastering &amp; bus glue, de-essing (compress only the sibilance band), controlling a wandering
+                        low end, or evening out a mix where one frequency range keeps jumping out.
+                    </p>
+                </div>
+            </div>
+            <div class="value-box p-3 text-xs text-textMuted">
+                <strong class="text-white">Watch out:</strong> independent bands can smear transients and shift tone if
+                pushed hard. Reach for it surgically — full-band compression is still the right tool most of the time.
+            </div>
+        </div>
+    </section>
+
     <!-- Listen -->
     <section class="mb-12">
         <div class="flex items-center gap-3 mb-4">
