@@ -22,319 +22,316 @@
     </script>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+<div class="w-full max-w-5xl">
 
-    <div class="w-full max-w-5xl">
-        <!-- Header -->
-        <header class="mb-6">
-            <a href="index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> Home</a>
-            <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
-                        <i data-feather="activity" class="text-accent"></i> Tempo &amp; Polyrhythm
-                    </h1>
-                    <p class="text-textMuted text-sm mt-1">BPM ratios &amp; polyrhythm visualizer for transitions</p>
-                </div>
-                <span class="tag">Tempo</span>
+    <header class="mb-6">
+        <a href="index.html" class="back-link mb-4"><i data-feather="arrow-left" style="width:14px;height:14px"></i> Home</a>
+        <div class="flex justify-between items-end mt-3 pb-4 border-b border-border">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <i data-feather="activity" class="text-accent"></i> Tempo &amp; Polyrhythm
+                </h1>
+                <p class="text-textMuted text-sm mt-1">A BPM idea generator — half-time, polyrhythms &amp; tempo bridges</p>
             </div>
-        </header>
+            <span class="tag">Tempo</span>
+        </div>
+    </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Left Column: Controls & Tempo Math -->
-            <div class="lg:col-span-1 space-y-6">
-                
-                <!-- Master BPM Input -->
-                <div class="panel p-6 shadow-2xl">
-                    <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-4">Master Clock</h2>
-                    <div class="flex justify-between items-baseline mb-2">
-                        <span class="text-5xl font-mono font-bold text-accent" id="bpmDisplay">109</span>
-                        <span class="text-xl font-mono text-textMuted">BPM</span>
-                    </div>
-                    <input type="range" id="bpmSlider" min="60" max="170" value="109" step="1" class="w-full mt-4">
-                    <div class="flex justify-between mt-4">
-                        <button onclick="adjustBpm(-1)" class="w-10 h-10 rounded bg-dark border border-border hover:border-accentHover transition-colors flex items-center justify-center">
-                            <i data-feather="minus" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="adjustBpm(1)" class="w-10 h-10 rounded bg-dark border border-border hover:border-accentHover transition-colors flex items-center justify-center">
-                            <i data-feather="plus" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
+    <section class="panel p-5 mb-6">
+        <p class="text-sm leading-relaxed text-gray-300">
+            A scratchpad calculator for working with tempos: find a track's BPM by tapping, see what it becomes in
+            <strong class="text-accent">half-time / double-time</strong>, and explore <strong class="text-white">polyrhythmic
+            bridge tempos</strong> for layering or mixing two grooves. It's here to spark ideas, not to be precise to the millisecond.
+        </p>
+    </section>
 
-                <!-- Delay Times -->
-                <div class="panel p-6">
-                    <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i data-feather="clock" class="w-4 h-4"></i> Delay Times (ms)
-                    </h2>
-                    <div class="space-y-3 font-mono text-sm">
-                        <div class="flex justify-between items-center value-box p-3">
-                            <span class="text-textMuted">1/4 Note</span>
-                            <span id="delay1_4" class="font-bold text-white"></span>
-                        </div>
-                        <div class="flex justify-between items-center value-box p-3">
-                            <span class="text-textMuted">1/8 Note</span>
-                            <span id="delay1_8" class="font-bold text-white"></span>
-                        </div>
-                        <div class="flex justify-between items-center value-box p-3 border-l-2 border-l-accent">
-                            <span class="text-textMuted">1/8 Dotted</span>
-                            <span id="delay1_8d" class="font-bold text-accent"></span>
-                        </div>
-                        <div class="flex justify-between items-center value-box p-3">
-                            <span class="text-textMuted">1/8 Triplet</span>
-                            <span id="delay1_8t" class="font-bold text-white"></span>
-                        </div>
-                    </div>
+    <!-- Master clock -->
+    <section class="panel p-5 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+            <div class="md:w-1/3">
+                <h2 class="knob-label mb-2">Master tempo</h2>
+                <div class="flex items-baseline gap-2 mb-3">
+                    <input id="bpmInput" type="number" min="30" max="300" value="109"
+                        class="bg-dark border border-border rounded px-3 py-2 text-4xl font-mono font-bold text-accent w-32" style="outline:none">
+                    <span class="text-lg font-mono text-textMuted">BPM</span>
                 </div>
+                <input id="bpmSlider" type="range" min="40" max="220" value="109" step="1" class="w-full">
+                <div class="flex gap-2 mt-4">
+                    <button id="tap" class="flex-1 rounded px-3 py-2 text-sm font-semibold" style="background:var(--color-accent);color:#111">Tap tempo</button>
+                    <button data-adj="-1" class="adj w-10 rounded bg-dark border border-border hover:border-accentHover">&minus;</button>
+                    <button data-adj="1" class="adj w-10 rounded bg-dark border border-border hover:border-accentHover">+</button>
+                </div>
+                <p id="tapHint" class="text-textMuted text-xs mt-2">Tap the button in time to detect a BPM.</p>
             </div>
 
-            <!-- Right Column: Transitions & Visualizer -->
-            <div class="lg:col-span-2 space-y-6 flex flex-col">
-                
-                <!-- Polyrhythm Transitions -->
-                <div class="panel p-6">
-                    <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i data-feather="git-merge" class="w-4 h-4"></i> Tempo Bridges
-                    </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        
-                        <!-- 4:3 -->
-                        <div class="value-box p-4 text-center cursor-pointer hover:border-accent transition-colors" onclick="setVisualizerRatio(4, 3)">
-                            <div class="text-xs text-textMuted mb-1">4:3 (Dotted 8th)</div>
-                            <div class="text-2xl font-mono font-bold text-white" id="bridge4_3"></div>
-                            <div class="text-[10px] text-textMuted mt-1">x 1.333</div>
-                        </div>
-
-                        <!-- 3:4 -->
-                        <div class="value-box p-4 text-center cursor-pointer hover:border-accent transition-colors" onclick="setVisualizerRatio(3, 4)">
-                            <div class="text-xs text-textMuted mb-1">3:4</div>
-                            <div class="text-2xl font-mono font-bold text-white" id="bridge3_4"></div>
-                            <div class="text-[10px] text-textMuted mt-1">x 0.750</div>
-                        </div>
-
-                        <!-- 3:2 -->
-                        <div class="value-box p-4 text-center cursor-pointer hover:border-accent transition-colors" onclick="setVisualizerRatio(3, 2)">
-                            <div class="text-xs text-textMuted mb-1">3:2 (Triplet)</div>
-                            <div class="text-2xl font-mono font-bold text-white" id="bridge3_2"></div>
-                            <div class="text-[10px] text-textMuted mt-1">x 1.500</div>
-                        </div>
-
-                        <!-- 2:3 -->
-                        <div class="value-box p-4 text-center cursor-pointer hover:border-accent transition-colors" onclick="setVisualizerRatio(2, 3)">
-                            <div class="text-xs text-textMuted mb-1">2:3</div>
-                            <div class="text-2xl font-mono font-bold text-white" id="bridge2_3"></div>
-                            <div class="text-[10px] text-textMuted mt-1">x 0.666</div>
-                        </div>
-
-                    </div>
-                    <p class="text-xs text-textMuted mt-4 italic">Click a bridge above to visualize the polyrhythm below.</p>
+            <!-- Half / double time -->
+            <div class="md:w-2/3">
+                <h2 class="knob-label mb-2">Time-feel conversions</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="value-box p-3 text-center"><div class="text-xs text-textMuted mb-1">Half-time (&divide;2)</div><div id="half" class="text-2xl font-mono font-bold text-white">—</div></div>
+                    <div class="value-box p-3 text-center border-l-2 border-l-accent"><div class="text-xs text-textMuted mb-1">As written</div><div id="asis" class="text-2xl font-mono font-bold text-accent">—</div></div>
+                    <div class="value-box p-3 text-center"><div class="text-xs text-textMuted mb-1">Double-time (&times;2)</div><div id="dbl" class="text-2xl font-mono font-bold text-white">—</div></div>
+                    <div class="value-box p-3 text-center"><div class="text-xs text-textMuted mb-1">3/4 feel (&times;0.75)</div><div id="three4" class="text-xl font-mono font-bold text-white">—</div></div>
+                    <div class="value-box p-3 text-center"><div class="text-xs text-textMuted mb-1">1.5&times; feel</div><div id="onehalf" class="text-xl font-mono font-bold text-white">—</div></div>
+                    <div class="value-box p-3 text-center"><div class="text-xs text-textMuted mb-1">Bar length (4/4)</div><div id="barlen" class="text-xl font-mono font-bold text-white">—</div></div>
                 </div>
-
-                <!-- Visualizer -->
-                <div class="panel p-0 overflow-hidden flex-grow flex flex-col min-h-[300px]">
-                    <div class="p-4 border-b border-border flex justify-between items-center bg-darker/50">
-                        <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider flex items-center gap-2">
-                            <i data-feather="activity" class="w-4 h-4"></i> Phase Visualizer
-                        </h2>
-                        <div class="text-xs font-mono text-accent" id="visRatioDisplay">Ratio: 4:3</div>
-                    </div>
-                    <div class="relative flex-grow bg-dark">
-                        <canvas id="polyCanvas" class="absolute inset-0 w-full h-full"></canvas>
-                    </div>
-                </div>
-
+                <p class="text-textMuted text-xs mt-3">
+                    A song that <em>feels</em> half-time at <span id="hint1" class="text-white font-mono">—</span> BPM is often counted as
+                    <span id="hint2" class="text-accent font-mono">—</span> BPM — handy when a DAW or other track disagrees with your ear.
+                </p>
             </div>
         </div>
+    </section>
 
-        <footer class="mt-12 pt-5 border-t border-border text-textMuted text-xs flex justify-between">
-            <a href="index.html" class="back-link">xxar's Marginalia Island</a>
-            <span>Tempo &amp; Polyrhythm</span>
-        </footer>
-    </div>
+    <!-- Polyrhythm bridges -->
+    <section class="mb-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Polyrhythm</span>
+            <h2 class="text-lg font-semibold tracking-tight">Tempo bridges &amp; ratios</h2>
+        </div>
+        <div class="panel p-5">
+            <p class="text-textMuted text-sm mb-4">
+                Two grooves "lock" when their tempos sit in a simple ratio. From your master tempo, here are the
+                bridge BPMs — click one to hear/see the polyrhythm against the base in the visualizer below.
+            </p>
+            <div id="bridges" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+        </div>
+    </section>
 
-    <script>
-        // Initialize Icons
-        feather.replace();
+    <!-- Note divisions / delay times -->
+    <section class="mb-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Timing</span>
+            <h2 class="text-lg font-semibold tracking-tight">Note &amp; delay times (ms)</h2>
+        </div>
+        <div class="panel p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono text-sm" id="divisions"></div>
+    </section>
 
-        // State
-        let currentBPM = 109;
-        let visTargetMulti = 4;
-        let visBaseMulti = 3;
-        
-        // DOM Elements
-        const bpmSlider = document.getElementById('bpmSlider');
-        const bpmDisplay = document.getElementById('bpmDisplay');
-        
-        const delay1_4 = document.getElementById('delay1_4');
-        const delay1_8 = document.getElementById('delay1_8');
-        const delay1_8d = document.getElementById('delay1_8d');
-        const delay1_8t = document.getElementById('delay1_8t');
-        
-        const bridge4_3 = document.getElementById('bridge4_3');
-        const bridge3_4 = document.getElementById('bridge3_4');
-        const bridge3_2 = document.getElementById('bridge3_2');
-        const bridge2_3 = document.getElementById('bridge2_3');
-        
-        const visRatioDisplay = document.getElementById('visRatioDisplay');
+    <!-- Phase visualizer -->
+    <section class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="tag">Visualize</span>
+            <h2 class="text-lg font-semibold tracking-tight">Polyrhythm phase</h2>
+        </div>
+        <div class="panel p-0 overflow-hidden">
+            <div class="p-4 border-b border-border flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button id="playViz" class="rounded px-3 py-1.5 text-xs font-semibold" style="background:var(--color-accent);color:#111">Play</button>
+                    <span class="text-xs font-mono text-accent" id="visRatioDisplay">Ratio 4 : 3</span>
+                </div>
+                <span class="text-xs text-textMuted" id="visBpms">—</span>
+            </div>
+            <div class="relative bg-dark" style="height:240px">
+                <canvas id="polyCanvas" class="absolute inset-0 w-full h-full"></canvas>
+            </div>
+        </div>
+        <p class="text-textMuted text-xs mt-2">
+            White track = base pulse, orange track = the bridge tempo. When dots align you're back at the downbeat —
+            that's the length of the full polyrhythm cycle.
+        </p>
+    </section>
 
-        // Functions
-        function adjustBpm(delta) {
-            currentBPM = Math.max(60, Math.min(170, currentBPM + delta));
-            bpmSlider.value = currentBPM;
-            updateCalculations();
-        }
+    <footer class="pt-5 border-t border-border text-textMuted text-xs flex justify-between">
+        <a href="index.html" class="back-link">xxar's Marginalia Island</a>
+        <span>Tempo &amp; Polyrhythm</span>
+    </footer>
 
-        function setVisualizerRatio(target, base) {
-            visTargetMulti = target;
-            visBaseMulti = base;
-            visRatioDisplay.textContent = `Ratio: ${target}:${base}`;
-            
-            // Highlight active box visually
-            document.querySelectorAll('.value-box').forEach(el => el.classList.remove('border-accent'));
-            event.currentTarget.classList.add('border-accent');
-            
-            resetAnimation();
-        }
+</div>
+<script>
+feather.replace();
 
-        function updateCalculations() {
-            bpmDisplay.textContent = currentBPM;
-            
-            // Delays (ms)
-            const quarterMs = 60000 / currentBPM;
-            delay1_4.textContent = quarterMs.toFixed(1);
-            delay1_8.textContent = (quarterMs / 2).toFixed(1);
-            delay1_8d.textContent = (quarterMs * 0.75).toFixed(1); // Dotted 8th (3/16)
-            delay1_8t.textContent = (quarterMs / 3).toFixed(1);    // 8th Triplet
-            
-            // Bridges
-            bridge4_3.textContent = (currentBPM * (4/3)).toFixed(1);
-            bridge3_4.textContent = (currentBPM * (3/4)).toFixed(1);
-            bridge3_2.textContent = (currentBPM * (3/2)).toFixed(1);
-            bridge2_3.textContent = (currentBPM * (2/3)).toFixed(1);
-        }
+let bpm = 109;
+let vis = { a: 4, b: 3 }; // ratio numerator:denominator (orange:white)
 
-        // Event Listeners
-        bpmSlider.addEventListener('input', (e) => {
-            currentBPM = parseInt(e.target.value);
-            updateCalculations();
+// Bridge ratios to show (label, numerator/denominator multiplier)
+const RATIOS = [
+    { n: 1, d: 2, note: 'Half-time' },
+    { n: 2, d: 3, note: '2:3' },
+    { n: 3, d: 4, note: '3:4' },
+    { n: 4, d: 5, note: '4:5' },
+    { n: 5, d: 4, note: '5:4' },
+    { n: 4, d: 3, note: '4:3 · dotted 8th' },
+    { n: 3, d: 2, note: '3:2 · triplet' },
+    { n: 2, d: 1, note: 'Double-time' },
+];
+
+// Note divisions (label, beats relative to a quarter note)
+const DIVS = [
+    { l: '1/1 (bar)', m: 4 }, { l: '1/2', m: 2 }, { l: '1/4', m: 1 },
+    { l: '1/8', m: 0.5 }, { l: '1/8 dotted', m: 0.75 }, { l: '1/8 triplet', m: 1/3 },
+    { l: '1/16', m: 0.25 }, { l: '1/16 triplet', m: 1/6 },
+];
+
+const $ = id => document.getElementById(id);
+
+function buildBridges() {
+    const wrap = $('bridges');
+    wrap.innerHTML = '';
+    RATIOS.forEach(r => {
+        const mult = r.n / r.d;
+        const card = document.createElement('div');
+        card.className = 'value-box p-3 text-center cursor-pointer hover:border-accent transition-colors';
+        card.dataset.n = r.n; card.dataset.d = r.d;
+        card.innerHTML = `
+            <div class="text-[0.65rem] text-textMuted mb-1">${r.note}</div>
+            <div class="text-xl font-mono font-bold text-white bpmout">—</div>
+            <div class="text-[10px] text-textMuted mt-1">&times;${mult.toFixed(3)}</div>`;
+        card.addEventListener('click', () => {
+            vis = { a: r.n, b: r.d };
+            $('visRatioDisplay').textContent = `Ratio ${r.n} : ${r.d}`;
+            document.querySelectorAll('#bridges .value-box').forEach(e => e.classList.remove('border-accent'));
+            card.classList.add('border-accent');
+            resetAnim();
+            update();
         });
+        wrap.appendChild(card);
+    });
+}
 
-        // Canvas Setup
-        const canvas = document.getElementById('polyCanvas');
-        const ctx = canvas.getContext('2d');
-        let animationId;
-        let startTime;
+function buildDivisions() {
+    const wrap = $('divisions');
+    wrap.innerHTML = '';
+    DIVS.forEach(dv => {
+        const el = document.createElement('div');
+        el.className = 'value-box p-3 flex flex-col items-center';
+        el.innerHTML = `<span class="text-textMuted text-[0.65rem] mb-1">${dv.l}</span><span class="text-white font-bold dms" data-m="${dv.m}">—</span>`;
+        wrap.appendChild(el);
+    });
+}
 
-        function resizeCanvas() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            // Handle high DPI displays
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            ctx.scale(dpr, dpr);
-            canvas.style.width = `${rect.width}px`;
-            canvas.style.height = `${rect.height}px`;
+function update() {
+    $('bpmInput').value = bpm;
+    $('bpmSlider').value = Math.max(40, Math.min(220, bpm));
+
+    // time-feel conversions
+    $('half').textContent   = (bpm/2).toFixed(1);
+    $('asis').textContent   = bpm.toFixed(1);
+    $('dbl').textContent    = (bpm*2).toFixed(1);
+    $('three4').textContent = (bpm*0.75).toFixed(1);
+    $('onehalf').textContent= (bpm*1.5).toFixed(1);
+    const barMs = (60000/bpm)*4;
+    $('barlen').textContent = (barMs/1000).toFixed(2)+'s';
+    $('hint1').textContent  = (bpm/2).toFixed(0);
+    $('hint2').textContent  = bpm.toFixed(0);
+
+    // bridges
+    document.querySelectorAll('#bridges .value-box').forEach(card => {
+        const m = (+card.dataset.n) / (+card.dataset.d);
+        card.querySelector('.bpmout').textContent = (bpm*m).toFixed(1);
+    });
+
+    // note/delay times
+    const quarterMs = 60000 / bpm;
+    document.querySelectorAll('#divisions .dms').forEach(el => {
+        el.textContent = (quarterMs * (+el.dataset.m)).toFixed(1);
+    });
+
+    // visualizer label
+    const targetBpm = bpm * (vis.a / vis.b);
+    $('visBpms').textContent = `base ${bpm} · target ${targetBpm.toFixed(1)} BPM`;
+}
+
+function setBpm(v) { bpm = Math.max(30, Math.min(300, Math.round(v))); update(); }
+
+$('bpmInput').addEventListener('input', e => setBpm(+e.target.value || 30));
+$('bpmSlider').addEventListener('input', e => setBpm(+e.target.value));
+document.querySelectorAll('.adj').forEach(b => b.addEventListener('click', () => setBpm(bpm + (+b.dataset.adj))));
+
+// Tap tempo
+let taps = [];
+$('tap').addEventListener('click', () => {
+    const now = performance.now();
+    taps = taps.filter(t => now - t < 2500);
+    taps.push(now);
+    if (taps.length >= 2) {
+        let sum = 0;
+        for (let i = 1; i < taps.length; i++) sum += taps[i] - taps[i-1];
+        const avg = sum / (taps.length - 1);
+        setBpm(60000 / avg);
+        $('tapHint').textContent = `Detected from ${taps.length} taps — keep tapping to refine.`;
+    } else {
+        $('tapHint').textContent = 'Keep tapping…';
+    }
+});
+</script>
+<script>
+// ---- Phase visualizer ----
+const canvas = document.getElementById('polyCanvas');
+const cctx = canvas.getContext('2d');
+let animId = null, startTime = 0, playing = false;
+
+function sizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', sizeCanvas);
+function resetAnim() { startTime = performance.now(); }
+
+function draw(ts) {
+    if (!startTime) startTime = ts;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    cctx.clearRect(0, 0, w, h);
+
+    // base = white track (vis.b beats), target = orange track (vis.a beats)
+    // one full polyrhythm cycle = the base bar; tracks realign at the start.
+    const beatMs = 60000 / bpm;
+    const cycleMs = beatMs * vis.b;            // length of the base grouping
+    const prog = ((ts - startTime) % cycleMs) / cycleMs;
+
+    const pad = 50, trackW = w - pad*2;
+    const y1 = h * 0.36, y2 = h * 0.64;
+
+    cctx.strokeStyle = '#2a2a2a'; cctx.lineWidth = 4; cctx.lineCap = 'round';
+    cctx.beginPath(); cctx.moveTo(pad, y1); cctx.lineTo(w-pad, y1); cctx.stroke();
+    cctx.beginPath(); cctx.moveTo(pad, y2); cctx.lineTo(w-pad, y2); cctx.stroke();
+
+    function nodes(count, y, color) {
+        for (let i = 0; i < count; i++) {
+            const x = pad + (i / count) * trackW;
+            const dist = Math.min(Math.abs(prog - i/count), Math.abs(prog - i/count - 1));
+            const pulse = dist < 0.04;
+            cctx.fillStyle = pulse ? color : '#444';
+            cctx.beginPath(); cctx.arc(x, y, pulse ? 8 : 4, 0, Math.PI*2); cctx.fill();
+            if (pulse) { cctx.shadowColor = color; cctx.shadowBlur = 14; cctx.fill(); cctx.shadowBlur = 0; }
         }
+    }
+    nodes(vis.b, y1, '#ffffff');   // white = base
+    nodes(vis.a, y2, '#ff4a00');   // orange = target
 
-        window.addEventListener('resize', resizeCanvas);
+    // playhead
+    const px = pad + prog * trackW;
+    cctx.strokeStyle = 'rgba(255,255,255,0.12)'; cctx.setLineDash([4,4]);
+    cctx.beginPath(); cctx.moveTo(px, y1-22); cctx.lineTo(px, y2+22); cctx.stroke(); cctx.setLineDash([]);
 
-        function resetAnimation() {
-            startTime = performance.now();
-        }
+    cctx.fillStyle = '#888'; cctx.font = '11px Inter'; cctx.textAlign = 'left';
+    cctx.fillText(`BASE · ${vis.b} beats · ${bpm} BPM`, pad, y1 - 18);
+    cctx.fillStyle = '#ff4a00';
+    cctx.fillText(`TARGET · ${vis.a} beats · ${(bpm*vis.a/vis.b).toFixed(1)} BPM`, pad, y2 + 30);
 
-        function drawVisualizer(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const elapsed = timestamp - startTime;
-            
-            const rect = canvas.getBoundingClientRect();
-            const width = rect.width;
-            const height = rect.height;
-            
-            ctx.clearRect(0, 0, width, height);
+    if (playing) animId = requestAnimationFrame(draw);
+}
 
-            // Time math based on Base BPM
-            // How long does 1 base cycle (e.g., 3 beats) take in ms?
-            const msPerBeat = 60000 / currentBPM;
-            const cycleDurationMs = msPerBeat * visBaseMulti;
-            
-            // Progress through the current cycle (0.0 to 1.0)
-            const progress = (elapsed % cycleDurationMs) / cycleDurationMs;
+const playBtn = document.getElementById('playViz');
+playBtn.addEventListener('click', () => {
+    playing = !playing;
+    playBtn.textContent = playing ? 'Pause' : 'Play';
+    if (playing) { resetAnim(); animId = requestAnimationFrame(draw); }
+    else if (animId) cancelAnimationFrame(animId);
+});
 
-            const padding = 50;
-            const trackWidth = width - (padding * 2);
-            const track1Y = height * 0.35;
-            const track2Y = height * 0.65;
-
-            // Draw Tracks
-            ctx.strokeStyle = '#2a2a2a'; // border color
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            
-            ctx.beginPath(); ctx.moveTo(padding, track1Y); ctx.lineTo(width - padding, track1Y); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(padding, track2Y); ctx.lineTo(width - padding, track2Y); ctx.stroke();
-
-            // Draw Target Nodes (Base Track)
-            for(let i=0; i < visBaseMulti; i++) {
-                const x = padding + (i / visBaseMulti) * trackWidth;
-                const dist = Math.abs(progress - (i/visBaseMulti));
-                const isPulsing = dist < 0.05 || (i===0 && progress > 0.95);
-                
-                ctx.fillStyle = isPulsing ? '#ffffff' : '#444';
-                ctx.beginPath(); ctx.arc(x, track1Y, isPulsing ? 8 : 4, 0, Math.PI*2); ctx.fill();
-            }
-
-            // Draw Target Nodes (Target Track)
-            for(let i=0; i < visTargetMulti; i++) {
-                const x = padding + (i / visTargetMulti) * trackWidth;
-                const dist = Math.abs(progress - (i/visTargetMulti));
-                const isPulsing = dist < 0.05 || (i===0 && progress > 0.95);
-                
-                ctx.fillStyle = isPulsing ? '#ff4a00' : '#444';
-                ctx.beginPath(); ctx.arc(x, track2Y, isPulsing ? 8 : 4, 0, Math.PI*2); ctx.fill();
-                
-                if (isPulsing) {
-                    ctx.shadowColor = '#ff4a00';
-                    ctx.shadowBlur = 15;
-                    ctx.fillStyle = '#ff4a00';
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                }
-            }
-
-            // Draw Traveling Playheads
-            const currentX = padding + (progress * trackWidth);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(currentX, track1Y, 6, 0, Math.PI*2); ctx.fill();
-            
-            ctx.fillStyle = '#ff4a00';
-            ctx.beginPath(); ctx.arc(currentX, track2Y, 6, 0, Math.PI*2); ctx.fill();
-
-            // Sync Line
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath(); ctx.moveTo(currentX, track1Y - 20); ctx.lineTo(currentX, track2Y + 20); ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Labels
-            ctx.fillStyle = '#888';
-            ctx.font = '12px Inter';
-            ctx.textAlign = 'left';
-            ctx.fillText(`BASE (${currentBPM} BPM)`, padding, track1Y - 20);
-            ctx.fillStyle = '#ff4a00';
-            ctx.fillText(`TARGET (${(currentBPM * (visTargetMulti/visBaseMulti)).toFixed(1)} BPM)`, padding, track2Y - 20);
-
-            animationId = requestAnimationFrame(drawVisualizer);
-        }
-
-        // Initialize
-        updateCalculations();
-        resizeCanvas();
-        resetAnimation();
-        drawVisualizer(performance.now());
-        
-        // Set initial highlight on 4:3
-        document.querySelectorAll('.value-box')[4].classList.add('border-accent');
-
-    </script>
+// ---- Init ----
+buildBridges();
+buildDivisions();
+update();
+sizeCanvas();
+resetAnim();
+draw(performance.now()); // draw one static frame
+// highlight the default 4:3 bridge
+const def = document.querySelector('#bridges .value-box[data-n="4"][data-d="3"]');
+if (def) def.classList.add('border-accent');
+</script>
 </body>
 </html>
